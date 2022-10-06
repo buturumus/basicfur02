@@ -1,0 +1,156 @@
+{# primepage/primepage.html #}
+
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+   
+   <!-- bootstrap css -->
+   <!-- 4.5.3 -->
+    <link 
+    href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"                
+    integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2"
+    crossorigin="anonymous"
+  >
+  {% comment %}
+   <!-- 5.2.1 -->
+  <link 
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" 
+    rel="stylesheet" 
+    integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" 
+    crossorigin="anonymous"
+  >
+  {% endcomment %}
+  {% comment %}
+    <!-- local -->
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+  {% endcomment %}
+
+    <!-- our own css -->
+  <link 
+    rel="stylesheet" 
+    href="{% static 'css/style.css' %}"
+  >
+
+   <!-- font awesome css -->
+  <link rel="stylesheet" 
+    href="https://use.fontawesome.com/releases/v5.8.2/css/all.css"
+    integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" 
+    crossorigin="anonymous"
+  >
+
+  <!-- jquery + ajax -->
+  <script 
+    src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"
+  ></script>
+  {% comment %}
+    <!-- local -->
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+  {% endcomment %}
+  
+  <title>{{ brand }}</title>
+</head>
+
+<body>
+
+  {% include "primepage/upperbar.html" %}
+
+  <main>
+    <div class="container-fluid"> 
+
+      {% if user.is_authenticated %}
+        <div class="row"> 
+                    
+          {# sidebar #}
+          <div 
+            id="sidebar"
+            class="col-lg-3 mx-0 px-0"
+          >
+            {% include "primepage/sidebar.html" %}
+          </div> 
+          
+          {# tabs or yes/no stuff on their place #}
+          <div 
+            id="tabs-and-substs" 
+            class="col-lg-9"
+          >
+
+            <div 
+              class="container-fluid"
+            >
+
+              <div id="tabs-cont" class="row">
+                <div class="col-lg-12">
+                  <!-- tab headers are here -->
+                  <ul id="tab-headers-cont" class="nav nav-tabs" role="tablist">
+                    {# ... #}
+                  </ul>
+                  <!-- tab bodies are here -->
+                  <div id="tab-bodys-cont" class="tab-content">
+                    {# ... #}
+                  </div>
+                </div>
+              </div>
+
+              <div 
+                id="yes-no-cont"
+              >
+                {% include "primepage/yesno.html" %}
+              </div> 
+
+            </div> 
+
+          </div> {# /tabs-and-substs (col-9) #}
+
+          <script src="static/js/primepage/primepage.js"></script>
+          {% comment %}
+          <script src="static/js/tabs/tabs.js"></script>
+          {% endcomment %}
+
+        </div> {# /row #}
+      {% endif %} {# /user.is_authenticated #}
+
+    </div> {# /container fluid #}
+  </main>
+
+
+   <!-- bootstrap javascript bundle with popper -->
+   <!-- 4.5.3 -->
+  <script 
+    src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" 
+    crossorigin="anonymous"
+  ></script>
+  {% comment %}
+   <!-- 5.2.1 -->
+  <script 
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js" 
+    integrity="sha384-u1OknCvxWvY5kfmNBILK2hRnQC3Pr17a+RTT6rIHI7NnikvbZlHgTPOOmMi466C8" 
+    crossorigin="anonymous"
+  ></script>
+  {% endcomment %}
+  {% comment %}
+    <!-- local  -->
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+  {% endcomment %}
+
+   <!-- font awesome js -->
+  <script defer 
+    src="https://use.fontawesome.com/releases/v5.0.13/js/solid.js" 
+    integrity="sha384-tzzSw1/Vo+0N5UhStP3bvwWPq+uvzCMfrN1fEFe+xBmv1C/AtVX5K0uZtmcHitFZ" 
+    crossorigin="anonymous"
+  ></script>
+  <script defer 
+    src="https://use.fontawesome.com/releases/v5.0.13/js/fontawesome.js" 
+    integrity="sha384-6OIrr52G08NpOFSZdxxz1xdNSndlD4vdcf/q2myIUVO0VsqaGHJsB0RaBE01VTOY" 
+    crossorigin="anonymous"
+  ></script>
+
+</body>
+
+</html>
