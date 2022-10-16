@@ -3,7 +3,7 @@
 {% load static %}
 
 <table 
-  class="table text-nowrap table-bordered table-hover table-responsive-md tab-body"
+  class="table text-nowrap table-bordered table-hover table-responsive-md tab-bodie"
   tab_action="{{ tab_action }}"
   matrix_type="{{ matrix_type }}"
   tab_model="{{ tab_model }}"
@@ -39,13 +39,13 @@
       ></span>
 
         now use direct 'row.1.X.Y' values instead of 'for i in row.1: i.Y'
-        where X = (human_id, date, partner, hot_transaction, ... )
+        where X = (humanid, date, partner, hot_transaction, ... )
         and Y = ( cell_val, shadow_val, width, extra_classes, ... ) 
 
       <!-- line 1 -->
       <tr class="col-12"> 
 
-          {# human_id #}
+          {# humanid #}
           <th class="col-1 align-middle text-right" scope="row">
             Код:
           </th>

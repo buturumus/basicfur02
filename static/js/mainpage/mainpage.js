@@ -14,7 +14,7 @@ let isYesPressed = false;
 
 let jsFuncs = {};
 
-const spinnerHtml=`
+const SPINNER_HTML=`
   <p></p>
   <div class="spinner-cont text-center">
     <div class="spinner-border role="status">
@@ -63,7 +63,7 @@ function getCookie(c_name) {
   return "";
 }
 
-function sendWithAjax(addr, objToSend, funcOnSuccess) {
+function sendAjax(addr, objToSend, funcOnSuccess) {
   // preprocessor for array of arrays
   for( name of ['book_acc_pairs', 'goodslines','sidebar_filters_data'] ){
     if(name in objToSend)
@@ -88,25 +88,25 @@ function sendWithAjax(addr, objToSend, funcOnSuccess) {
 
 // function to load any tab part(frame, header, table etc.)
 function loadTabPart(
-  reqVars, 
+  request, 
   objToAppendTo, 
   callback = () => {} 
 ){ 
   let url;
   if(
-    reqVars['tab_action'] == 'show_frame'
-    || reqVars['tab_action'] == 'show_header'
+    request['tab_action'] == 'show_frame'
+    || request['tab_action'] == 'show_header'
   )
-    url = '/tabs/' + reqVars['tab_action'] + '/' 
+    url = '/tabs/' + request['tab_action'] + '/' 
   else
-    url = '/tabs/' + reqVars['tab_action'] + '/' 
-      + (reqVars['matrix_type'] ? (reqVars['matrix_type'] + '/') : '')
-      + (reqVars['tab_model'] ? (reqVars['tab_model'] + '/') : '')
+    url = '/tabs/' + request['tab_action'] + '/' 
+      + (request['matrix_type'] ? (request['matrix_type'] + '/') : '')
+      + (request['tab_model'] ? (request['tab_model'] + '/') : '')
   ;
   // send ajax
-  sendWithAjax(
+  sendAjax(
     url,
-    reqVars,
+    request,
     function(jsonData){ 
       // get html response
       htmlBody = jsonData['html_in_json'];
@@ -114,9 +114,9 @@ function loadTabPart(
       objToAppendTo.append(htmlBody);
       // look for js to run on load and run it
       const addedJqueryHeader = $(objToAppendTo).find(
-          '[tab_action="' + reqVars['tab_action'] + '"]'
-          + '[matrix_type="' + reqVars['matrix_type'] + '"]'
-          + '[tab_model="' + reqVars['tab_model'] + '"]'
+          '[tab_action="' + request['tab_action'] + '"]'
+          + '[matrix_type="' + request['matrix_type'] + '"]'
+          + '[tab_model="' + request['tab_model'] + '"]'
       );
       const funcNames = $(addedJqueryHeader).attr('run_on_load');
       if(typeof funcNames !== 'undefined') {
@@ -141,7 +141,7 @@ function loadDropdowns(objToAppendTo){
   let tabClass = '';
   // special case for materials-in-store dropdown 
   if($(objToAppendTo).hasClass('goodslines-cont')){
-    const theHotId = $(objToAppendTo).closest('.tab-body-cont')
+    const theHotId = $(objToAppendTo).closest('.tab-bodie-cont')
       .find('.row-id-able').attr('hot_transaction');
     if(theHotId == $('#consts-block').attr('goods_to_prod_hot_id')){
       tabClass = 'dropdown_store';
@@ -164,13 +164,13 @@ function loadDropdowns(objToAppendTo){
 
 // function to load tab table, to some downloaded/refreshed part of tab
 function loadTabTable(
-  reqVars, // here's matrix_type, tab_model, tab_name
+  request, // here's matrix_type, tab_model, tab_name
   thisTablesParentCont // parent jquery object for loading tab table
 ){ 
-  reqVars['tab_action'] = 'show';
+  request['tab_action'] = 'show';
   // add sidebar_dates
-  reqVars['sidebar_date1'] = $('#datepicker1').val();
-  reqVars['sidebar_date2'] = $('#datepicker2').val();
+  request['sidebar_date1'] = $('#datepicker1').val();
+  request['sidebar_date2'] = $('#datepicker2').val();
   // add sidebar filter's data
   const sidebarFiltersData = {};
   $('.sidebar-dropdown-select').each(function() {
@@ -178,22 +178,22 @@ function loadTabTable(
       getIdFromDropdown($(this))
     ;
   });
-  reqVars['sidebar_filters_data'] = sidebarFiltersData;
+  request['sidebar_filters_data'] = sidebarFiltersData;
   // add sidebar simple input's data
   $('.sidebar-simple-input').each(function() {
     sidebarFiltersData[$(this).attr('field_var')] = 
       $(this).val() ? $(this).val() : ''
     ;
   });
-  reqVars['sidebar_filters_data'] = sidebarFiltersData;
+  request['sidebar_filters_data'] = sidebarFiltersData;
   // show wheel if ness.
   if(
     !['empty', 'new', 'edit', 'dropdown', 'dropdown_store', 'dropdown_stock']
-    .includes(reqVars['matrix_type'])
+    .includes(request['matrix_type'])
   )
-    $(thisTablesParentCont).append(spinnerHtml)
+    $(thisTablesParentCont).append(SPINNER_HTML)
   ;
-  loadTabPart( reqVars, 
+  loadTabPart( request, 
     $(thisTablesParentCont),
     //.then
     function(){
@@ -205,18 +205,18 @@ function loadTabTable(
       // then if nessesary get and append goodslines table
       const goodslinesCont = $(thisTablesParentCont).find('.goodslines-cont');
       if( goodslinesCont.length ){
-        reqVars['matrix_type'] = 'pivot';
+        request['matrix_type'] = 'pivot';
         if( 
           $(thisTablesParentCont).children('[tab_model]')
             .attr('tab_model') == 'killed_transaction'
         ) {
-          reqVars['tab_model'] = 'killed_goodsline'
+          request['tab_model'] = 'killed_goodsline'
         } else {
-          reqVars['tab_model'] = 'goodsline'
+          request['tab_model'] = 'goodsline'
         };
-        reqVars['root_transaction'] = reqVars['row_id'];
-        reqVars['row_id'] = '0';
-        loadTabTable(reqVars, goodslinesCont);
+        request['root_transaction'] = request['row_id'];
+        request['row_id'] = '0';
+        loadTabTable(request, goodslinesCont);
       };
     }
   );
@@ -224,29 +224,29 @@ function loadTabTable(
 
 // function to load full tab,  from frame to dropdowns
 function loadFullTab(
-  reqVars // here's matrix_type, tab_model but tab_action, will set manually
+  request // here's matrix_type, tab_model but tab_action, will set manually
 ){ 
   // check if such tab exists
   if(
-      $('.tab-body'
-      + '[matrix_type="' + reqVars['matrix_type'] + '"]' 
-      + '[tab_model="' + reqVars['tab_model'] + '"]'
+      $('.tab-bodie'
+      + '[matrix_type="' + request['matrix_type'] + '"]' 
+      + '[tab_model="' + request['tab_model'] + '"]'
     ).attr('id')
   ){
     // activate existing tab
-    $('#tab-header-link-' + reqVars['matrix_type'] + '__' + reqVars['tab_model'])
+    $('#tab-header-link-' + request['matrix_type'] + '__' + request['tab_model'])
       .tab('show');
     return;
   };
   // load tab's frame
-  reqVars['tab_action'] = 'show_frame';
-  loadTabPart( reqVars, $('#tab-bodys-cont'), 
+  request['tab_action'] = 'show_frame';
+  loadTabPart( request, $('#tab-bodies-cont'), 
     //.then
     function(){
       //
       // load tab's header
-      reqVars['tab_action'] = 'show_header';
-      loadTabPart(reqVars, $('#tab-headers-cont'), 
+      request['tab_action'] = 'show_header';
+      loadTabPart(request, $('#tab-headers-cont'), 
         //.then
         function(){
           // show the header(and the tab) after download
@@ -261,11 +261,11 @@ function loadFullTab(
           activeTabHeader = $('#' + currTabHeaderId).parent();
           //
           // and at last load tab's table
-          const thisTablesParentCont = $('.tab-body'
-            + '[matrix_type="' + reqVars['matrix_type'] + '"]' 
-            + '[tab_model="' + reqVars['tab_model'] + '"]'
-          ).find(' .tab-body-cont')
-          loadTabTable(reqVars, thisTablesParentCont);
+          const thisTablesParentCont = $('.tab-bodie'
+            + '[matrix_type="' + request['matrix_type'] + '"]' 
+            + '[tab_model="' + request['tab_model'] + '"]'
+          ).find(' .tab-bodie-cont')
+          loadTabTable(request, thisTablesParentCont);
         }
       ) 
     }
@@ -279,16 +279,16 @@ function loadFullTab(
 
 
 function refreshThisTab(theButton) {
-  const theTabFrame = theButton.closest('.tab-body');
+  const theTabFrame = theButton.closest('.tab-bodie');
   // remove old tab's table part
-  $(theTabFrame).find('.tab-body-cont').children().remove();
+  $(theTabFrame).find('.tab-bodie-cont').children().remove();
   // load new tab table
   loadTabTable({
       'matrix_type': $(theTabFrame).attr('matrix_type'),
       'tab_model': $(theTabFrame).attr('tab_model'),
       //    hot_transaction: '', //$(this).attr('hot_transaction',
       'row_id': 0,
-    }, $(theTabFrame).find('.tab-body-cont') 
+    }, $(theTabFrame).find('.tab-bodie-cont') 
   );
 } 
 
@@ -326,7 +326,7 @@ function closeTab(tabFrameToClose) {
 
 // close button action
 function closeThisTab(theButton) {
-  const theTabFrame = theButton.closest('.tab-body');
+  const theTabFrame = theButton.closest('.tab-bodie');
   closeTab(theTabFrame);
 }
 
@@ -337,49 +337,49 @@ function closeThisTab(theButton) {
 
 
 function makeSaveDict(tabFrameToSave, bookAccPairs, goodslinesCont = '') {
-  // fill reqVars-to-save with basic mand.fields
-  const reqVars = {
+  // fill request-to-save with basic mand.fields
+  const request = {
     'tab_action' : 'save',
     'matrix_type': $(tabFrameToSave).attr('matrix_type') ,
     'tab_model': $(tabFrameToSave).attr('tab_model') ,
     'row_id' : $(tabFrameToSave).find(
-      '.tab-body-cont *[row_id]').attr('row_id') ,
+      '.tab-bodie-cont *[row_id]').attr('row_id') ,
     // add current book-acc.pair
     'book_acc_pairs' : bookAccPairs ,
   };
-  // add plain input's values of given container only! to reqVars
+  // add plain input's values of given container only! to request
   $(tabFrameToSave).find('.save-val')
     .not(
       $(tabFrameToSave).find('[tab_action] [tab_action] .save-val')
     )
     .each( function() {
-      reqVars[$(this).attr('field_var')] = getValOrText(this);
+      request[$(this).attr('field_var')] = getValOrText(this);
   });
-  // add shadow values of given container only! to reqVars
+  // add shadow values of given container only! to request
   $(tabFrameToSave)
     .find('.save-shadow').not(
       $(tabFrameToSave).find('[tab_action] [tab_action] .save-shadow')
     )
     .each( function() {
-    // special case for new human_id: 
+    // special case for new humanid: 
     // don't bother with its shadow_id, it doesn't exist yet
     if(
-      reqVars['row_id'] == '0' 
-      && $(this).attr('field_var') == 'human_id'
+      request['row_id'] == '0' 
+      && $(this).attr('field_var') == 'humanid'
     ){
-      reqVars['human_id'] = $(this).text().trim();
+      request['humanid'] = $(this).text().trim();
     } else {
       // result depends on if the field is dropdown or static
       if($(this).hasClass('load-dropdown'))
-        reqVars[$(this).attr('field_var')] = getIdFromDropdown($(this))
+        request[$(this).attr('field_var')] = getIdFromDropdown($(this))
       else 
-        reqVars[$(this).attr('field_var')] = $(this).attr('shadow_id')
+        request[$(this).attr('field_var')] = $(this).attr('shadow_id')
       ;
     };
   });
-  // and add to reqVars goodslines if exist
-  if(!goodslinesCont || reqVars['has_goodsline'] == '0') return reqVars;
-  reqVars['goodslines'] = [];
+  // and add to request goodslines if exist
+  if(!goodslinesCont || request['has_goodsline'] == '0') return request;
+  request['goodslines'] = [];
   $(goodslinesCont).find('[row_id]').not('.goodslines-dummy-row')
   .each( function(){
     const goodsline = {};
@@ -399,9 +399,9 @@ function makeSaveDict(tabFrameToSave, bookAccPairs, goodslinesCont = '') {
     .each( function() {
       goodsline[$(this).attr('field_var')] = $(this).attr('shadow_id');
     });
-    reqVars['goodslines'].push(goodsline);
+    request['goodslines'].push(goodsline);
   });
-  return reqVars;
+  return request;
 }
 
 function saveTab(
@@ -420,18 +420,18 @@ function saveTab(
   });
   if(!allReady) return 'notReady';
   // now gather info inside target cont.(the main func's arg)
-  const reqVars = makeSaveDict(tabFrameToSave, bookAccPairs, goodslinesCont);
+  const request = makeSaveDict(tabFrameToSave, bookAccPairs, goodslinesCont);
   // add empty employee field for non-employee-only transaction
   if(
-    (reqVars['tab_model'] == 'transaction' 
-      || reqVars['tab_model'] == 'killed_transaction'
-    ) && !reqVars['employee'] && reqVars['partner'] 
+    (request['tab_model'] == 'transaction' 
+      || request['tab_model'] == 'killed_transaction'
+    ) && !request['employee'] && request['partner'] 
   )
-    reqVars['employee'] = reqVars['partner'];
-  // and now send reqVars to backend
+    request['employee'] = request['partner'];
+  // and now send request to backend
   loadTabPart(
-    reqVars, 
-    $(tabFrameToSave).find('.tab-body-cont'), 
+    request, 
+    $(tabFrameToSave).find('.tab-bodie-cont'), 
     callback 
   )
 //  console.log('/ saving result');
@@ -477,13 +477,13 @@ function saveTransactionTab(tabFrameToSave, callback) {
 function saveThisTab(theButton) {
   // save function: std or transaction, they are different
   const saveTabFunction = 
-    (theButton.closest('.tab-body').find('*[tab_model]')
+    (theButton.closest('.tab-bodie').find('*[tab_model]')
       .attr('tab_model') == 'transaction'
     ) ? saveTransactionTab : saveTab
   ;
   // call save function end close the tab on success
   saveTabFunction(
-    theButton.closest('.tab-body'),
+    theButton.closest('.tab-bodie'),
     function(){
       closeThisTab(theButton);
     },
@@ -524,25 +524,25 @@ function showYesNoScreen(callback, theButton = {}, alertMsg = ''){
 };
 
 function delTab(tabFrameToDel) {
-  // make simple reqVars to save
-  const reqVars = {
+  // make simple request to save
+  const request = {
     'tab_action'  : 'kill',
     'matrix_type'   : $(tabFrameToDel).attr('matrix_type') ,
     'tab_model'   : $(tabFrameToDel).attr('tab_model') ,
-    'row_id' : $(tabFrameToDel).find('.tab-body-cont *[row_id]')
+    'row_id' : $(tabFrameToDel).find('.tab-bodie-cont *[row_id]')
       .attr('row_id')
     ,
-    'human_id'    : $(tabFrameToDel)
-      .find('.tab-body-cont *[field_var="human_id"]')
+    'humanid'    : $(tabFrameToDel)
+      .find('.tab-bodie-cont *[field_var="humanid"]')
       .first().attr('shadow_id')
     ,
   };
-  loadTabPart( reqVars, $(tabFrameToDel).find('.tab-body-cont') );
+  loadTabPart( request, $(tabFrameToDel).find('.tab-bodie-cont') );
 }
 
 // del button action
 function delThisTab(theButton) {
-  if(!delTab( theButton.closest('.tab-body') )) {
+  if(!delTab( theButton.closest('.tab-bodie') )) {
       closeThisTab(theButton)
   };
 } 
@@ -555,7 +555,7 @@ function delThisTab(theButton) {
 // pensil buttons action
 function editThisItem(theButton) { 
   // vals can be hardcoded in the button
-  let reqVars;
+  let request;
   if(
       $(theButton).attr('btn_matrix_type')
       && $(theButton).attr('btn_tab_model')
@@ -581,7 +581,7 @@ function editThisItem(theButton) {
         .find('td[field_var="name"]').text().trim();
       $('.sidebar-dropdown-select[field_var="partner"]').val(partnerId);
     };
-    reqVars = {
+    request = {
       'matrix_type'       : $(theButton).attr('btn_matrix_type'),
       'tab_model'       : $(theButton).attr('btn_tab_model'),
       'row_id'          : $(theButton).attr('btn_row_id'),
@@ -589,15 +589,15 @@ function editThisItem(theButton) {
     }
   // or search them among the ancestors
   } else {
-    reqVars = {
+    request = {
       'matrix_type': 'edit',
-      'tab_model': theButton.closest('.tab-body').attr('tab_model'),
+      'tab_model': theButton.closest('.tab-bodie').attr('tab_model'),
       'row_id' : theButton.closest('tr[row_id]').attr('row_id'),
       'hot_transaction' : theButton.closest('[hot_transaction]')
         .attr('hot_transaction'),
     }
   };
-  loadFullTab(reqVars);
+  loadFullTab(request);
 } 
 
 function makeHumanId() {
@@ -640,11 +640,11 @@ function fixNum(format, num) {
  * goodsline table's functions
  */
 function refreshTransactionMoney(btnOrParent) {
-  const transactionMoneyField = $(btnOrParent).closest('.tab-body-cont')
+  const transactionMoneyField = $(btnOrParent).closest('.tab-bodie-cont')
       .find('*[field_var="money"]');
-  const isShipping = ( $(btnOrParent).closest('.tab-body-cont')
+  const isShipping = ( $(btnOrParent).closest('.tab-bodie-cont')
       .find('*[shipping_hot_id]').attr('shipping_hot_id')
-    == $(btnOrParent).closest('.tab-body-cont')
+    == $(btnOrParent).closest('.tab-bodie-cont')
       .find('*[hot_transaction]').attr('hot_transaction')
   );
   // calc.both totals and set one of them to the field
@@ -653,7 +653,7 @@ function refreshTransactionMoney(btnOrParent) {
       let sum = +0;
       let sumShip = +0;
       // iter.over goodsline dummy input row's neighbors
-      $(btnOrParent).closest('.tab-body-cont')
+      $(btnOrParent).closest('.tab-bodie-cont')
         .find('.goodslines-dummy-row').parent()
         .find('[row_id]').not('.goodslines-dummy-row')
         .each(
@@ -720,7 +720,7 @@ function delGoodsLine(delButton) {
   $(rowToDel).find('.save-val').each( function(){
     const varName = $(this).attr('field_var');
     if($(this).text()) {
-      if(varName == 'human_id') {
+      if(varName == 'humanid') {
         $(inputsRow).find('[field_var="' + varName + '"]')
           .text(
               $(this).text()
@@ -744,7 +744,7 @@ function delGoodsLine(delButton) {
   });
   // deal with material
   const inputMaterialField = $(inputsRow).find('[field_var="material"');
-  const hotTransaction = $(inputsRow).closest('.tab-body')
+  const hotTransaction = $(inputsRow).closest('.tab-bodie')
     .find('[hot_transaction]').attr('hot_transaction');
   const matShadowId = $(rowToDel).find('[field_var="material"')
     .attr('shadow_id');
@@ -752,13 +752,13 @@ function delGoodsLine(delButton) {
   if(   hotTransaction == $('#consts-block').attr('goods_to_prod_hot_id')
      || hotTransaction == $('#consts-block').attr('shipping_hot_id')
   ){
-    // wide dropdown case: key is purchase_human_id
+    // wide dropdown case: key is purchase_humanid
     // 
     // find appropr.option inside input's dropdown 
-    const purchaseHumanId = $(rowToDel).find('[field_var="purchase_human_id"')
+    const purchaseHumanId = $(rowToDel).find('[field_var="purchase_humanid"')
       .text().trim();
     const approprOption = $(inputMaterialField)
-      .find('option[human_id="' + purchaseHumanId + '"]');
+      .find('option[humanid="' + purchaseHumanId + '"]');
     // if the option found ok
     let newQty;
     if(approprOption.length){
@@ -776,7 +776,7 @@ function delGoodsLine(delButton) {
       $(inputMaterialField).append(
         '<option'
         + ' shadow_id="' + matShadowId + '"'
-        + ' human_id="' + purchaseHumanId + '"'
+        + ' humanid="' + purchaseHumanId + '"'
         + ' qty="' + newQty + '"'
         + '>'
         + $(rowToDel).find('[field_var="material"]').text().trim() + ' '
@@ -784,14 +784,14 @@ function delGoodsLine(delButton) {
         + $('#consts-block').attr('delim1') //' по '
         + $(rowToDel).find('[field_var="price"]').text().trim()
         + ' #'
-        + $(rowToDel).find('[field_var="purchase_human_id"]').text().trim()
+        + $(rowToDel).find('[field_var="purchase_humanid"]').text().trim()
         + $('#consts-block').attr('right_bracket')
         + '</option>'
       );
       // "select" option
       $(inputMaterialField).val( 
         $(inputMaterialField)
-          .find('option[human_id="' + purchaseHumanId + '"]').val() 
+          .find('option[humanid="' + purchaseHumanId + '"]').val() 
       );
     };
   } else {
@@ -833,7 +833,7 @@ function saveNewGoodsLine(saveButton) {
       break;
     };
   };
-  const inputMaterialHumanId = $(selOption).attr('human_id');
+  const inputMaterialHumanId = $(selOption).attr('humanid');
   const inputMaterialQty = $(selOption).attr('qty');
   //  total qty must not be negative
   restQty = inputMaterialQty - $(inputQtyField).val();
@@ -848,12 +848,12 @@ function saveNewGoodsLine(saveButton) {
   const clonedRow = $(goodslinesTbody).find('.goodslines-dummy-row')
     .clone(true);
   $(clonedRow).removeClass('goodslines-dummy-row');
-  // generate in input row human_id if empty
+  // generate in input row humanid if empty
   let humanId;
   if(
-    ! $(inputsRow).find('[field_var="human_id"]').text().trim()
+    ! $(inputsRow).find('[field_var="humanid"]').text().trim()
   )
-    $(inputsRow).find('[field_var="human_id"]').text( makeHumanId() )
+    $(inputsRow).find('[field_var="humanid"]').text( makeHumanId() )
   ;
   // copy input's vals to the created row
   $(clonedRow).find('*[field_var]').each( function(){
@@ -875,16 +875,16 @@ function saveNewGoodsLine(saveButton) {
       )
     ;
     // and clear used input
-    if(varName == 'human_id') 
+    if(varName == 'humanid') 
       $(srcField).text('')
     else
       $(srcField).val('')
     ;
   });
   // get selected material's humand_id and put it 
-  // to fresh row as purchase_human_id
-  $(clonedRow).find('[field_var="purchase_human_id"]').text(
-    $(selOption).attr('human_id')
+  // to fresh row as purchase_humanid
+  $(clonedRow).find('[field_var="purchase_humanid"]').text(
+    $(selOption).attr('humanid')
   );
   // reset totals in input's row(it's text(), not val())
   $(inputsRow).find('[field_var="total"]').text('');
@@ -899,12 +899,12 @@ function saveNewGoodsLine(saveButton) {
     }
   );
   // calc.where to insert new row
-  const newHumanId = $(clonedRow).find('[field_var="human_id"]').text();
+  const newHumanId = $(clonedRow).find('[field_var="humanid"]').text();
   let rowAfter = $(goodslinesTbody).find('.goodslines-dummy-row');
   for(const row of $(goodslinesTbody).find('.row-id-able')
     .not('.goodslines-dummy-row')
   ){
-    const thisHumanId = $(row).find('[field_var="human_id"]').text().trim();
+    const thisHumanId = $(row).find('[field_var="humanid"]').text().trim();
     if(thisHumanId > newHumanId) {
       rowAfter = row;
       break;
@@ -957,7 +957,7 @@ function wipeTransactionClick(){
 function testClick() {
   const url = '/tabs/show_header';
   // send ajax
-  sendWithAjax(
+  sendAjax(
     url,
     {},
     function(jsonData){ 

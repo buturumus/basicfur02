@@ -1,11 +1,11 @@
-{# sum_matrix_std.html #}
+{# parts/shown_summary_anymodel.html #}
 
 {% load static %}
 
 <div class="scrollbarable">
 <table 
   class="table text-nowrap table-striped table-bordered 
-    table-hover table-responsive tab-body"
+    table-hover table-responsive tab-bodie"
   tab_action="{{ tab_action }}"
   matrix_type="{{ matrix_type }}"
   tab_model="{{ tab_model }}"

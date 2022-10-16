@@ -48,3 +48,16 @@ class ShownSumMatrixStd(ListView):
 class ShownTab(TemplateView):
     template_name = 'tabs/body_summary.html'
 
+    def get_context_data(self, *args, **kwargs):
+        logging.warning('get_context_data')
+        context = super().get_context_data(*args, **kwargs)
+
+        """
+        @classmethod
+        def as_view(cls, **initkwargs):
+            self = cls(**initkwargs)
+            view = super(TemplateView, cls).as_view(**initkwargs)
+            logging.warning(view())
+            return view
+        """
+        

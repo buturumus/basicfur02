@@ -1,0 +1,27 @@
+{# shown_header.html #}
+
+{% load static %}
+
+<li 
+  {# id must be set for bootstrap tab navigation #}
+  id="tab-header-cont-{{ matrix_type }}{{ model }}" 
+  uniq_category="{{ matrix_type }}{{ model }}"
+  class="nav-item tab-header"
+>
+  <a 
+    href="#tab-bodie-{{ matrix_type }}{{ model }}"
+    id="tab-header-link-{{ matrix_type }}{{ model }}"  {# must be set for tab.show() #}
+    class="nav-link tab-header-link" 
+    role="tab" 
+    data-toggle="tab" 
+  >
+      <span 
+       id="tab-header-title-{{ matrix_type }}{{ model }}" 
+        class="tab-header-title"
+      >
+          {{ lc_tab_title }}
+      </span>
+  </a>
+</li>
+
+

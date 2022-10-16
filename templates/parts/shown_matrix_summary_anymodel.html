@@ -1,0 +1,39 @@
+{# parts/shown_matrix_summary_anymodel.html #}
+
+{% load static %}
+
+<div class="scrollbarable">
+<table 
+  class="table table-sm col-12
+    text-nowrap table-striped table-bordered table-hover table-responsive-lg 
+    tab-matrix
+  "
+>
+  <thead class="thead-light">
+    <tr>
+      {% for header_name, header_class in headers_data %}
+        <th
+          class="{{ header_class }}"
+          scope="col"
+        >
+          {{ header_name }}
+        </th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for obj in object_list_values %}
+      <tr>
+        {% for the_key, the_val in obj.items %}
+          <td>
+            {{ the_val }}
+          </td>
+        {% endfor %}
+          <td class="text-center">
+            &#128393;
+          </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>

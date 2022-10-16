@@ -175,13 +175,8 @@
               <li>
                 <a 
                   href="#" 
-                  {% comment %}
-                    {% if level1_item.4 %}
-                      id="{{ level1_item.4 }}"
-                    {% endif %}
-                  {% endcomment %}
                   class="click-for-tab"
-                  matrix_type="{{ level1_item.2 }}"
+                  tab_cmd="{{ level1_item.0 }}"
                   uniq_category="{{ level1_item.2 }}{{ level1_item.3 }}"
                 >
                   {{ level1_item.1 }}

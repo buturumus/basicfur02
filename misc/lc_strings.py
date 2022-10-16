@@ -1,11 +1,13 @@
 # misc/lc_strings.py
 
-lc_id = 0
+lc_num = 0
 
 LC_NAMES = {
     'brand': (
         'BasicFur - production, inventories, stock',
     ),
+    # models
+    # account chart names
     'acc_00': ('Service', ),
     'acc_05': ('Inventories', ),
     'acc_06': ('Consumables', ),
@@ -19,6 +21,7 @@ LC_NAMES = {
     'acc_72/1': ('Petty cash', ),
     'acc_80': ('Profit', ),
     'acc_80/1': ('Owner1', ),
+    # hot entries list
     'hot_entry_service': ('Srv.transaction', ),
     'hot_entry_shipping': ('Shipping', ),
     'hot_entry_mat_to_prod': ('Mater.to production', ),
@@ -37,13 +40,15 @@ LC_NAMES = {
     'hot_entry_cache_out': ('Cash out', ),
     'hot_entry_cache_in': ('Cash in', ),
     'partner_group_employees': ('Employees', ),
+    # ui
+    # sidebar
     'sidebar_from_date': ('from', ),
     'sidebar_to_date': ('to', ),
     'sidebar_date_hint': ('date', ),
     'sidemenu_service_entry': ('Service entry', ),
     'sidemenu_settings': ('Settings', ),
     'sidemenu_money_entries_log': ('Transactions log', ),
-    'sidemenu_partners_list': ('Parnters list', ),
+    'sidemenu_partners_list': ('Partners list', ),
     'sidemenu_new_partner': ('New partner', ),
     'sidemenu_materials_list': ('Materials list', ),
     'sidemenu_new_material': ('New material', ),
@@ -77,4 +82,17 @@ LC_NAMES = {
     'sidemenu_accountable_cache_spent': ('Accountable cache spent', ),
     'sidemenu_admin': ('Admin.tasks', ),
     'sidemenu_wipe_entries': ('Wipe entries', ),
+    # common tab bodie buttons
+    'btn_f5': ('Reload',  ),
+    'btn_add': ('Add',  ),
+    'btn_close': ('Close',  ),
+    'btn_close_no_save': ('Close w/o save',  ),
+    'btn_delete': ('Delete', 'Удалить', ),
+    'btn_save_close_tr': ('Save and close',  ),
+    'btn_save_close': ('Save and close',  ),
+    # summary matrixx
+    'summary_parter_name1': ('Name', ),
+    'summary_parter_name2': ('Name2', ),
+    'summary_parter_group': ('In group', ),
+    'summary_material_name': ('Name', ),
 }

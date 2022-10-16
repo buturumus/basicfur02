@@ -4,8 +4,8 @@
 
 {# <!-- tab's frame --> #}
 <div 
-  id="tab-body-{{ tab_name }}"  {# must be set for bootstrap tab navigation #}
-  class="tab-body tab-pane fade" 
+  id="tab-bodie-{{ tab_name }}"  {# must be set for bootstrap tab navigation #}
+  class="tab-bodie tab-pane fade" 
   role="tabpanel"
   tab_action="{{ tab_action }}"
   matrix_type="{{ matrix_type }}"
@@ -47,12 +47,12 @@
 
   <!-- tab frame's title, same as header -->
   {% block tab_title %}
-    <h2 class="tab-body-title">{{ tab_title }}</h2>
+    <h2 class="tab-bodie-title">{{ tab_title }}</h2>
   {% endblock tab_title %}
 
   <!-- table part of tab -->
   <div 
-    class="tab-body-cont ">
+    class="tab-bodie-cont ">
   </div> 
   {% comment %}
     {% with template_name=tab_name|stringformat:'s' %}

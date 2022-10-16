@@ -1,9 +1,9 @@
-{# tabs/body_summary.html #}
-
-{% load static %}
+{# parts/shown_bodie_error.html #}
 
 {% comment %}
-{% extends "tabs/body_std_base_.html" %}
+{% extends "parts/bodie_std_base_.html" %}
+
+{% load static %}
 
 {% block central_top_button %}
 {% endblock central_top_button %}
@@ -18,7 +18,10 @@
 {% endblock bottom_right_button %}
 
 {% endcomment %}
+
 <div>
-  test
+  error: {{ tab_cmd }}
 </div>
+{% comment %}
+{% endcomment %}
 

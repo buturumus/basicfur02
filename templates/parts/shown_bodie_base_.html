@@ -1,19 +1,18 @@
-{# body_std_base_.html #}
+{# parts/shown_bodie_base_.html #}
 
 {% load static %}
 
-{# tab body #}
 <div 
-  id="tab-body-{{ matrix_type }}_{{ tab_model }}"  {# must be set for bootstrap tab navigation #}
-  class="tab-body tab-pane fade" 
+  {# id must be set for bootstrap tab navigation #}
+  id="tab-bodie-{{ matrix_type }}{{ model }}"  
+  uniq_category="{{ matrix_type }}{{ model }}"
+  tab_cmd="{{ tab_cmd }}"
+  class="tab-bodie tab-pane fade
+  " 
   role="tabpanel"
-  tab_action="{{ tab_action }}"
-  matrix_type="{{ matrix_type }}"
-  tab_model="{{ tab_model }}"
-  tab_name="{{ tab_name }}"
-  run_on_load="{{ run_on_load }}"
 >
   {# common keys block #}
+
   <p>
     <div class="row">
 
@@ -44,22 +43,15 @@
     </div>
   </p>
 
-
   {# tab frame's title, same as header #}
   {% block tab_title %}
-    <h2 class="tab-body-title">{{ tab_title }}</h2>
+    <h2 class="tab-bodie-title">{{ lc_tab_title }}</h2>
   {% endblock tab_title %}
 
   {# matrix body #}
   <div 
-    class="tab-body-cont ">
+    class="tab-matrix-cont">
   </div> 
-  {% comment %}
-    {% with template_name=tab_name|stringformat:'s' %}
-      {% include 'home/tabs/'|add:template_name|add:'_dyn.html' %}
-    {% endwith %}
-  {% endcomment %}
-
 
  {# bottom keys block #}
   <p>
@@ -76,9 +68,14 @@
       {% endblock bottom_left_button %}
 
       {% block bottom_central_button %}
-      <div class="col text-center">
-          <button id="{{ tab_name }}-save-btn" type="button" class="btn btn-success">Добавить</button>
-      </div>
+        {% comment "" %}
+          <div class="col text-center">
+              <button 
+                id="{{ tab_name }}-save-btn" 
+                type="button" 
+                class="btn btn-success">Add</button>
+          </div>
+        {% endcomment %}
       {% endblock bottom_central_button %}
 
       {% block bottom_right_button %}

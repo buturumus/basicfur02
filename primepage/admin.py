@@ -52,7 +52,7 @@ admin.site.register(HotEntry, HotEntryAdmin)
 
 #
 class MoneyEntryAdmin(admin.ModelAdmin):
-    list_display = ('human_id', )
+    list_display = ('humanid', )
 
 
 admin.site.register(MoneyEntry, MoneyEntryAdmin)
@@ -60,7 +60,7 @@ admin.site.register(MoneyEntry, MoneyEntryAdmin)
 
 #
 class KilledMoneyEntryAdmin(admin.ModelAdmin):
-    list_display = ('human_id', )
+    list_display = ('humanid', )
 
 
 admin.site.register(KilledMoneyEntry, KilledMoneyEntryAdmin)
@@ -68,7 +68,7 @@ admin.site.register(KilledMoneyEntry, KilledMoneyEntryAdmin)
 
 #
 class GoodsEntryAdmin(admin.ModelAdmin):
-    list_display = ('human_id', )
+    list_display = ('humanid', )
 
 
 admin.site.register(GoodsEntry, GoodsEntryAdmin)
@@ -76,7 +76,7 @@ admin.site.register(GoodsEntry, GoodsEntryAdmin)
 
 #
 class KilledGoodsEntryAdmin(admin.ModelAdmin):
-    list_display = ('human_id', )
+    list_display = ('humanid', )
 
 
 admin.site.register(KilledGoodsEntry, KilledGoodsEntryAdmin)

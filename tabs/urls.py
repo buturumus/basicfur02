@@ -7,10 +7,9 @@ from .views import ShownTab
 
 urlpatterns = [
     path(
-        'tabs/<slug:click_id>/',
+        '<slug:click_id>/',
         never_cache(
             ShownTab.as_view()
         )
     ),
 ]
-

@@ -28,4 +28,18 @@ class Initable:
         cls.init_defaults(cls)
 
 
-    
+class ClassNameGetter:
+
+    @classmethod
+    def get_class_name(cls):
+        return cls.__name__
+
+    # classname's getting works correct with an instance of a model only 
+    @staticmethod
+    def name_from_model(model):
+        try:
+            name = model.get_class_name()
+            return name
+        except AttributeError:
+            return ''
+

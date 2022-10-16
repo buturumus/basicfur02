@@ -67,9 +67,9 @@ jsFuncs['dk_prefix'] = function(parentCont) {
 }
 // set clicks to filter partners by their balance value
 jsFuncs['partners_filter_buttons'] = function(parentCont) {
-  const trsToFilter = $(parentCont).closest('.tab-body')
-    .find('.tab-body tbody tr');
-  $(parentCont).closest('.tab-body').find('.partners-filter-btn')
+  const trsToFilter = $(parentCont).closest('.tab-bodie')
+    .find('.tab-bodie tbody tr');
+  $(parentCont).closest('.tab-bodie').find('.partners-filter-btn')
     .on('click', '', function() {
       // for 'debitors'
       if($(this).hasClass('partners-filter-deb')){
@@ -164,7 +164,7 @@ jsFuncs['del_dropdown_duplicates'] = function(parentCont) {
  */
 jsFuncs['no_del_btn_if_new'] = function(parentCont) {
   if($(parentCont).parent().find('*[row_id]').first().attr('row_id') == '0')
-    $(parentCont).parents('.tab-body').find('.del-btn').remove();
+    $(parentCont).parents('.tab-bodie').find('.del-btn').remove();
 }
 
 /*
@@ -175,7 +175,7 @@ jsFuncs['no_edit_btns_if_killed'] = function(parentCont) {
   if($(parentCont).parent().find('*[tab_model]').first()
       .attr('tab_model') == 'killed_transaction'
   ) {
-    $(parentCont).parents('.tab-body').find('.del-btn,.save-btn').remove();
+    $(parentCont).parents('.tab-bodie').find('.del-btn,.save-btn').remove();
   };
 }
 
@@ -185,7 +185,7 @@ jsFuncs['no_edit_btns_if_killed'] = function(parentCont) {
 jsFuncs['goodslines_table_controls'] = function(parentCont) {
   //      init page with goodlines
   // make transaction total field grey instead of input
-  const transactionMoneyField = $(parentCont).closest('.tab-body-cont')
+  const transactionMoneyField = $(parentCont).closest('.tab-bodie-cont')
     .find('*[field_var="money"]');
   const transactionMoneyParent = transactionMoneyField.parent()
   $(transactionMoneyField).remove();
@@ -199,7 +199,7 @@ jsFuncs['goodslines_table_controls'] = function(parentCont) {
   refreshTransactionMoney(transactionMoneyParent);
   //      end of init page with goodlines.
   // set copy price on any material dropdown's change
-  $(parentCont).closest('.tab-body-cont')
+  $(parentCont).closest('.tab-bodie-cont')
       .find('.goodslines-inputs-row [field_var="material"]')
   .on('change', function() {
       //
@@ -214,7 +214,7 @@ jsFuncs['goodslines_table_controls'] = function(parentCont) {
           startPos + leftDelim.length, endPos
         );
         if(price)
-          $(parentCont).closest('.tab-body-cont')
+          $(parentCont).closest('.tab-bodie-cont')
             .find('.goodslines-inputs-row [field_var="price"]')
           .val(price)
         ;
@@ -223,7 +223,7 @@ jsFuncs['goodslines_table_controls'] = function(parentCont) {
   );
 
   // set compute total on any input field's change
-  $(parentCont).closest('.tab-body-cont')
+  $(parentCont).closest('.tab-bodie-cont')
     .find('.goodslines-input')
   .on('change', function() {
       refreshGoodslineTotals($(this));
@@ -231,11 +231,11 @@ jsFuncs['goodslines_table_controls'] = function(parentCont) {
   );
 
   // set reset inputs on click
-  $(parentCont).closest('.tab-body-cont')
-    .find('.goodslines-inputs-row [field_var="human_id"]')
+  $(parentCont).closest('.tab-bodie-cont')
+    .find('.goodslines-inputs-row [field_var="humanid"]')
   .on('click', function() {
       // reset all neighbor(input) elements
-      $(parentCont).closest('.tab-body-cont')
+      $(parentCont).closest('.tab-bodie-cont')
         .find('.goodslines-inputs-row [field_var]')
       .each(function() {
         if( $(this).attr('field_var') == 'material' )
@@ -251,7 +251,7 @@ jsFuncs['goodslines_table_controls'] = function(parentCont) {
   });
 
   // set save btn action for new material line
-  $(parentCont).closest('.tab-body-cont')
+  $(parentCont).closest('.tab-bodie-cont')
     .find('.goodslines-inputs-row .goodslines-inputs-save')
   .on('click', function() {
      saveNewGoodsLine($(this)); 

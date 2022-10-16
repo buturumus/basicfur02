@@ -14,9 +14,9 @@ class Primepage(TemplateView):
         context = super().get_context_data(*args, **kwargs)
         # add to context localized names
         for thekey in lc_strings.LC_NAMES:
-            context[thekey] = lc_strings.LC_NAMES[thekey][lc_strings.lc_id]
+            context[thekey] = lc_strings.LC_NAMES[thekey][lc_strings.lc_num]
         # add sidebar menu's items:
-        context['sidemenu_items'] = SideMenu.get_template_items()
+        context['sidemenu_items'] = SideMenu.get_sidemenu_items()
         # logging.warning(context['SIDEMENU_ITEMS'])
         return context
 
