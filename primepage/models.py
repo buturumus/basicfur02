@@ -11,7 +11,10 @@ from misc.common_classes import Initable
 from misc.common_classes import ClassNameGetter
 from misc.common_functions import dict_list_search
 from misc.common_functions import lc
-name_from_model = ClassNameGetter.name_from_model   # shortname
+# shortnames
+name_from_model = ClassNameGetter.name_from_model
+LC_NAMES = lc_strings.LC_NAMES
+lc_num = lc_strings.lc_num
 
 
 class Account(models.Model, Initable, ClassNameGetter):
@@ -25,8 +28,7 @@ class Account(models.Model, Initable, ClassNameGetter):
     number = models.CharField(max_length=8)
 
     def __str__(self):
-        return ('acc_'
-                + f'{lc_strings.LC_NAMES[self.name][lc_strings.lc_num]}')
+        return self.number + ' - ' + LC_NAMES[f'acc_{self.number}'][lc_num]
 
 
 class PartnerGroup(models.Model, Initable, ClassNameGetter):
@@ -37,14 +39,18 @@ class PartnerGroup(models.Model, Initable, ClassNameGetter):
     name = models.CharField(max_length=50, default='')
 
     def __str__(self):
-        return ('partner_group_'
-                + f'{lc_strings.LC_NAMES[self.name][lc_strings.lc_num]}')
+        return self.name
 
 
 class Partner(models.Model, ClassNameGetter):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50, default='')
+    last_name = models.CharField(
+        max_length=50,
+        default='',
+        null=True,
+        blank=True,
+    )
     create_date = models.DateTimeField(
         default=datetime(1970, 1, 1, 0, 0, 0, 0))
     partner_group = models.ForeignKey(
@@ -66,7 +72,6 @@ class Partner(models.Model, ClassNameGetter):
 
     def __str__(self):
         return self.name
-
 
 
 class Material(models.Model, ClassNameGetter):
@@ -112,8 +117,7 @@ class HotEntry(models.Model, Initable, ClassNameGetter):
     name = models.CharField(max_length=32, default='')
 
     def __str__(self):
-        return ('hot_entry_'
-                + f'{lc_strings.LC_NAMES[self.name][lc_strings.lc_num]}')
+        return LC_NAMES[f'hot_entry_{self.name}'][lc_num]
 
 
 class MoneyEntry(models.Model, ClassNameGetter):
@@ -180,7 +184,7 @@ class MoneyEntry(models.Model, ClassNameGetter):
         null=True,
         blank=True,
         on_delete=models.CASCADE)
-    has_goodslines = models.SmallIntegerField(default=0)
+    # has_goodslines = models.SmallIntegerField(default=0)
 
     def __str__(self):
         return self.humanid
@@ -444,16 +448,10 @@ class TabmakingItems:
     TABMAKING_ITEMS_CONSTS = (
         [['settings'] + i for i in [
             ['service_entry', 'edit', MoneyEntry, ],
-            ['money_entries_log', 'summary', MoneyEntry,
-            #    '', DataForShownMatrixSummaryAnymodel
-            ],
-            ['partners_list', 'summary', Partner,
-            #    '', DataForShownMatrixSummaryAnymodel
-            ],
+            ['money_entries_log', 'summary', MoneyEntry, ],
+            ['partners_list', 'summary', Partner, ],
             ['new_partner', 'edit', Partner, ],
-            ['materials_list', 'summary', Material,
-            #   '', DataForShownMatrixSummaryAnymodel
-            ],
+            ['materials_list', 'summary', Material, ],
             ['new_material', 'edit', Material, ],
             ['killed_money_entries_log', 'summary', MoneyEntry, ],
         ]]
@@ -564,46 +562,46 @@ class SideMenu:
                 # level1_items = [name, lc_name, matrix_type, "model"]
                 level1_items.append([
                     the_tabmaking_item_dict['tab_cmd'],
-                    lc_strings.LC_NAMES[
+                    LC_NAMES[
                         'sidemenu_'
                         + the_tabmaking_item_dict['tab_cmd']
-                    ][lc_strings.lc_num],
+                    ][lc_num],
                     the_tabmaking_item_dict['matrix_type'],
                     name_from_model(the_tabmaking_item_dict['model'])
                 ])
             sidemenu_items.append([
                 level0_item_line['name'],
-                lc_strings.LC_NAMES[
-                    'sidemenu_' + level0_item_line['name']][lc_strings.lc_num],
+                LC_NAMES[
+                    'sidemenu_' + level0_item_line['name']][lc_num],
                 level1_items,
             ])
         return sidemenu_items
 
 
 MATRIX_CONSTS = {
-    'summary': { 
+    'summary': {
         'shown_keys': {
             Partner: (
-                'name', 
-                'last_name', 
+                'name',
+                'last_name',
                 'partner_group',
                 # pensil,
             ),
             Material: (
-                'name', 
+                'name',
+                '',
                 # pensil,
             ),
-        },
-        'header_names_keys': {
-            Partner: (
-                'summary_parter_name1',
-                'summary_parter_name2',
-                'summary_parter_group',
-                '',
-            ),
-            Material: (
-                'summary_material_name',
-                '',
+            MoneyEntry: (
+                'humanid',
+                'date',
+                'partner',
+                'hot_entry',
+                'deb_account',
+                'cred_account',
+                'money',
+                'comment',
+                # pensil,
             ),
         },
         'header_html_classes': {
@@ -611,11 +609,41 @@ MATRIX_CONSTS = {
                 'col-5 text-left',
                 'col-4 text-left',
                 'col-2 text-left',
-                'col-1',
             ),
             Material: (
-                'col-10 text-left',
+                'col-7 text-left',
+                'col-4',
+            ),
+            MoneyEntry: (
+                'col-1',
+                'col-1 text-right',
                 'col-2',
+                'col-1',
+                'col-1 text-center',
+                'col-1 text-center',
+                'col-1 text-right',
+                'col-3',
+            ),
+        },
+        'header_names_keys': {
+            Partner: (
+                'summary_parter_name1',
+                'summary_parter_name2',
+                'summary_parter_group',
+            ),
+            Material: (
+                'summary_material_name',
+                '',
+            ),
+            MoneyEntry: (
+                'summary_m_entry_humanid',
+                'summary_m_entry_date',
+                'summary_m_entry_partner',
+                'summary_m_entry_hot_entry',
+                'summary_m_entry_deb_account',
+                'summary_m_entry_cred_account',
+                'summary_m_entry_money',
+                'summary_m_entry_comment',
             ),
         },
     },
@@ -638,3 +666,4 @@ MATRIX_CONSTS = {
         },
     },
 }
+

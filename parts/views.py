@@ -14,9 +14,10 @@ from django.views.generic.list import ListView
 """
 from django.views.generic.base import TemplateView
 from misc.common_functions import lc
-from primepage.models import TabmakingItems
+# from primepage.models import TabmakingItems
 from primepage.models import Partner
 from primepage.models import Material
+from primepage.models import MoneyEntry
 from primepage.models import DataForAnypart
 from primepage.models import DataForSimplepartAnymodel
 from primepage.models import MATRIX_CONSTS
@@ -65,7 +66,7 @@ class ShownTabheader(ShownSimplepartAnymodel):
 
 
 # More comples classes for other tab parts=matrixx
-# 
+#
 class ShownMatrixAnymodel(ShownAnypart):
     pass
 
@@ -86,37 +87,68 @@ class ShownMatrixSummaryAnymodel(ListView, ShownMatrixAnymodel):
         )
         # upd.context with disassembled instances' keyvalues
         all_keyvals = context['object_list'].values()
+        logging.warning(all_keyvals)
         context.update({
             'object_list_values':
-            [{  # object_list_values
-                filtered_key:
-                raw_dict[filtered_key]
-                for filtered_key in list(filter(
-                    None,
-                    [   
-                        raw_key
-                        if (
-                            re.sub('_id$', '', raw_key) 
-                            in MATRIX_CONSTS['summary']['shown_keys'][self.model]
-                        ) else None
-                        for raw_key in raw_dict
-                    ]
-                ))
-            } for raw_dict in all_keyvals],
+            [{
+                shown_key:
+                a_dict[shown_key]
+                if (
+                    shown_key in a_dict
+                    and a_dict[shown_key]
+                ) else
+                self.model._meta.get_field(
+                    f'{shown_key}_id').related_model.objects.get(
+                    id=a_dict[f'{shown_key}_id'])
+                if (
+                    f'{shown_key}_id' in a_dict
+                    and a_dict[f'{shown_key}_id']
+                ) else
+                ''
+                for shown_key in MATRIX_CONSTS[
+                    'summary']['shown_keys'][self.model]
+            } for a_dict in all_keyvals],
         })
+        # context.update({
+        #     'object_list_values':
+        #     [{
+        #         shown_key:
+        #         [
+        #             a_dict[shown_key]
+        #             if (
+        #                 shown_key in a_dict
+        #                 and a_dict[shown_key]
+        #             ) else
+        #             self.model._meta.get_field(shown_key + '_id')
+        #                 .related_model
+        #                 .objects.get(id=a_dict[shown_key + '_id'])
+        #             if (
+        #                 (shown_key + '_id') in a_dict
+        #                 and a_dict[shown_key + '_id']
+        #             ) else
+        #             '',
+        #             cls
+        #         ]
+        #         for shown_key, cls in zip(
+        #             MATRIX_CONSTS['summary']['shown_keys'][self.model],
+        #             MATRIX_CONSTS['summary']['header_html_classes']
+        #             [self.model]
+        #         )
+        #     } for a_dict in all_keyvals],
+        # })
         # with header names and html classes
         context.update({
             'headers_data':
             zip(
                 [
-                    lc(name_key)
-                    for name_key in 
-                    MATRIX_CONSTS['summary']['header_names_keys'][self.model]
+                    lc(name_key) for name_key in
+                    MATRIX_CONSTS['summary'][
+                        'header_names_keys'][self.model]
                 ],
                 [
-                    name_key
-                    for name_key in 
-                    MATRIX_CONSTS['summary']['header_html_classes'][self.model]
+                    cls for cls in
+                    MATRIX_CONSTS['summary'][
+                        'header_html_classes'][self.model]
                 ],
             )
         })
@@ -133,6 +165,10 @@ class ShownMatrixSummaryMaterial(ShownMatrixSummaryAnymodel):
     model = Material
 
 
+class ShownMatrixSummaryMoneyEntry(ShownMatrixSummaryAnymodel):
+    model = MoneyEntry
+
+
 class ShownError(TemplateView):
     template_name = 'parts/shown_bodie_error.html'
     tab_cmd = None
@@ -141,11 +177,10 @@ class ShownError(TemplateView):
 def selected_view(request, tab_cmd, part_stage, *args, **kwargs):
     # starting stage for every tab loading
     if part_stage == 'bodie':
-        if tab_cmd == 'money_entries_log':
-            view_class = ShownBodieSummaryAnymodel
-        elif tab_cmd in (
+        if tab_cmd in (
             'partners_list',
             'materials_list',
+            'money_entries_log',
         ):
             view_class = ShownBodieSummaryAnymodel
         else:
@@ -159,6 +194,8 @@ def selected_view(request, tab_cmd, part_stage, *args, **kwargs):
             view_class = ShownMatrixSummaryPartner
         elif tab_cmd == 'materials_list':
             view_class = ShownMatrixSummaryMaterial
+        elif tab_cmd == 'money_entries_log':
+            view_class = ShownMatrixSummaryMoneyEntry
         else:
             view_class = ShownError
     else:

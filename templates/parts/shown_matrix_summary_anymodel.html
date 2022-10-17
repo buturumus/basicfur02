@@ -19,13 +19,22 @@
           {{ header_name }}
         </th>
       {% endfor %}
+        <th 
+          class="col-1"
+        >
+        </th>
     </tr>
   </thead>
   <tbody>
     {% for obj in object_list_values %}
       <tr>
         {% for the_key, the_val in obj.items %}
-          <td>
+          <td
+            {% comment %}
+            class="{{ the_val.1 }}"
+            {% endcomment %}
+            class="{{ the_val.1 }}"
+          >
             {{ the_val }}
           </td>
         {% endfor %}

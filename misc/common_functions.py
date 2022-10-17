@@ -18,7 +18,7 @@ def dict_list_search(dict_list,
 
 def lc(name):
     return (
-        f'{lc_strings.LC_NAMES[name][lc_strings.lc_num]}'
+        lc_strings.LC_NAMES[name][lc_strings.lc_num]
         if name else ''
     )
 

@@ -198,6 +198,8 @@ class ShownMatrixGetter extends PagepartGetter {
     this.tabCmd = parentBodieGetter.tabCmd;
     this.url = `/part/${this.tabCmd}/matrix/`;
     this.funcOnSuccess = (resp) => { 
+      // wipe wheel
+      this.objToAppendTo.children().remove();
       // put downloaded content to it's place
       const addedMatrix = this.objToAppendTo.append(resp)
         .children(':last-child');
@@ -220,6 +222,11 @@ class ShownTabheaderGetter extends PagepartGetter {
         .children(':last-child');
       // activate the tabheader, mandatory
       addedTabheader.find('.tab-header-link').tab('show');
+      // show wheel
+      $('#tab-bodies-cont '
+        + `.tab-bodie[tab_cmd=${parentBodieGetter.tabCmd}] `
+        + '.tab-matrix-cont'
+      ).append(SPINNER_HTML);
       // load matrix
       const matrixGetter = new ShownMatrixGetter(parentBodieGetter);
       matrixGetter.sendAjaxGet();
@@ -241,6 +248,11 @@ class ShownBodieGetter extends PagepartGetter {
     tabBodie.find('.refresh-btn').click(function() {
       // delete matrix
       $(tabBodie).find('.scrollbarable').remove();
+      // show wheel
+      $('#tab-bodies-cont '
+        + `.tab-bodie[tab_cmd=${currentBodieGetter.tabCmd}] `
+        + '.tab-matrix-cont'
+      ).append(SPINNER_HTML);
       // load matrix again
       const matrixGetter = new ShownMatrixGetter(currentBodieGetter);
       matrixGetter.sendAjaxGet();
