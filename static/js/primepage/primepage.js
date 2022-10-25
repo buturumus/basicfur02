@@ -52,6 +52,9 @@ function Classes(...baseClasses) {
 }
 
 
+/* old */
+
+
 function getValOrText(field) {
   let val;
   val = $(field).val();
@@ -88,19 +91,7 @@ function getCookie(CName) {
 }
 
 
-function sendAjaxGet_(addr, objToSend, funcOnSuccess) {
-  $.ajax({
-    type:         'GET',
-    url:          addr,
-    data:         objToSend,
-    cache:        false,
-    success:      funcOnSuccess,  // it's arg = response data
-    dataType:     'html',
-  })
-}
-
-
-function sendAjaxPost(addr, objToSend, funcOnSuccess) {
+function sendAjaxPost(addr, objToSend, funcOnAjaxSuccess) {
   // preprocessor for array of arrays
   for (const theKey in objToSend) {
     if (objToSend[theKey] instanceof Array) 
@@ -112,13 +103,10 @@ function sendAjaxPost(addr, objToSend, funcOnSuccess) {
     url:          addr,
     data:         objToSend,
     cache:        false,
-    success:      funcOnSuccess,  // it's arg = response data
+    success:      funcOnAjaxSuccess,  // it's arg = response data
     dataType:     'json',
   })
 }
-
-
-/* Tab content loading functions */
 
 
 function loadTabPart(
@@ -128,8 +116,6 @@ function loadTabPart(
   callback = () => {} 
 ){ 
   sendAjaxGet_(url, request, function(jsonData){ 
-    console.log(typeof(jsonData));
-    console.log(`_${jsonData}_`);
     objToAppendTo.append(jsonData);
     /*
     // get html response
@@ -170,7 +156,7 @@ class PagepartGetter {
     this.url = '';
     this.objToSend = {};
     this.objToAppendTo = {};
-    this.funcOnSuccess = () => {};
+    this.funcOnAjaxSuccess = () => {};
   }
 
   sendAjaxGet() {
@@ -179,12 +165,13 @@ class PagepartGetter {
       url:          this.url,
       data:         this.objToSend,
       cache:        false,
-      success:      this.funcOnSuccess,  // it's arg = response
+      success:      this.funcOnAjaxSuccess,  // it's arg = response
       dataType:     'html',
     })
   }
 
 }
+
 
 class ShownMatrixGetter extends PagepartGetter {
 
@@ -196,14 +183,47 @@ class ShownMatrixGetter extends PagepartGetter {
       + '.tab-matrix-cont'
     );
     this.tabCmd = parentBodieGetter.tabCmd;
-    this.url = `/part/${this.tabCmd}/matrix/`;
-    this.funcOnSuccess = (resp) => { 
+    this.pk = parentBodieGetter.pk;
+    this.url = `/part/${this.tabCmd}/matrix/${this.pk}/`;
+    this.funcOnAjaxSuccess = (resp) => { 
       // wipe wheel
       this.objToAppendTo.children().remove();
       // put downloaded content to it's place
       const addedMatrix = this.objToAppendTo.append(resp)
         .children(':last-child');
+      // and activate pensils
+      addedMatrix.find('.pensil').click(function() {
+        // check to avoid duplication 
+        const existBodie = $('#tab-bodies-cont')
+          .find(`.tab-bodie[uniq_category=${$(this).attr('uniq_category')}]`);
+        const uniqCategory = $(existBodie).attr('uniq_category');
+        if ( ! uniqCategory) {
+          // add if such tab doesn't exists 
+          const clickProcessor = new PensilClickProcessor(this);
+          clickProcessor.sendAjaxGet();
+        } else {
+          // or activate existing
+          $(`#tab-header-link-${uniqCategory}`).tab('show');
+        };
+      });
     };
+  }
+
+  activatePensils(theMatrix) {
+    $(document).find('.pensil').click(function() {
+      // check to avoid duplication 
+      const existBodie = $('#tab-bodies-cont')
+        .find(`.tab-bodie[uniq_category=${$(this).attr('uniq_category')}]`)
+      const uniqCategory = existBodie.attr('uniq_category');
+      if ( ! uniqCategory) {
+        // add if such tab doesn't exists 
+        const clickProcessor = new SidebarClickProcessor(this);
+        clickProcessor.sendAjaxGet()
+      } else {
+        // or activate existing
+        $(`#tab-header-link-${uniqCategory}`).tab('show');
+      };
+    });
   }
 
 }
@@ -215,8 +235,9 @@ class ShownTabheaderGetter extends PagepartGetter {
     super();
     this.objToAppendTo = $('#tab-headers-cont');
     this.tabCmd = parentBodieGetter.tabCmd;
-    this.url = `/part/${this.tabCmd}/tabheader/`,
-    this.funcOnSuccess = (resp) => { 
+    this.pk = parentBodieGetter.pk;
+    this.url = `/part/${this.tabCmd}/tabheader/${this.pk}/`,
+    this.funcOnAjaxSuccess = (resp) => { 
       // put downloaded content to it's place
       const addedTabheader = this.objToAppendTo.append(resp)
         .children(':last-child');
@@ -294,18 +315,40 @@ class ShownBodieGetter extends PagepartGetter {
 }
 
 
-class SidebarClicker extends ShownBodieGetter {
+class PensilClickProcessor extends ShownBodieGetter {
 
   constructor(clickableItem){
     super();
     this.tabCmd = $(clickableItem).attr('tab_cmd');
-    this.url = `/part/${this.tabCmd}/bodie/`;
-    this.funcOnSuccess = (resp) => { 
-      // add downloaded content to the tab bodie.
+    this.pk = $(clickableItem).closest('tr[pk]').attr('pk');
+    this.url = `/part/${this.tabCmd}/bodie/${this.pk}/`;
+    // ajax callback: add downloaded content to the tab bodie.
+    this.funcOnAjaxSuccess = (resp) => { 
       const addedBodie = this.objToAppendTo.append(resp)
         .children(':last-child');
       this.activateButtons(addedBodie);
-      // load header
+      // load header(then bodie etc.)
+      const tabheaderGetter = new ShownTabheaderGetter(this);
+      tabheaderGetter.sendAjaxGet();
+    };
+  }
+
+}
+
+
+class SidebarClickProcessor extends ShownBodieGetter {
+
+  constructor(clickableItem){
+    super();
+    this.tabCmd = $(clickableItem).attr('tab_cmd');
+    this.pk = 0;  // for all sidebar clickables
+    this.url = `/part/${this.tabCmd}/bodie/${this.pk}/`;
+    // ajax callback: add downloaded content to the tab bodie.
+    this.funcOnAjaxSuccess = (resp) => { 
+      const addedBodie = this.objToAppendTo.append(resp)
+        .children(':last-child');
+      this.activateButtons(addedBodie);
+      // load header(then bodie etc.)
       const tabheaderGetter = new ShownTabheaderGetter(this);
       tabheaderGetter.sendAjaxGet();
     };
@@ -321,12 +364,12 @@ $(document).ready(function() {
   $(document).find('.click-for-tab').click(function() {
     // check to avoid duplication 
     const existBodie = $('#tab-bodies-cont')
-      .find(`[uniq_category=${$(this).attr('uniq_category')}]`)
+      .find(`.tab-bodie[uniq_category=${$(this).attr('uniq_category')}]`)
     const uniqCategory = existBodie.attr('uniq_category');
     if ( ! uniqCategory) {
       // add if such tab doesn't exists 
-      const sidebarItem = new SidebarClicker(this);
-      sidebarItem.sendAjaxGet()
+      const clickProcessor = new SidebarClickProcessor(this);
+      clickProcessor.sendAjaxGet()
     } else {
       // or activate existing
       $(`#tab-header-link-${uniqCategory}`).tab('show');

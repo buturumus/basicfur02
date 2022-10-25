@@ -1,0 +1,37 @@
+{# parts/shown_bodie_edit_anymodel.html #}
+
+{% extends "parts/shown_bodie_base_.html" %}
+
+{% load static %}
+
+
+{# put tab title instead of top left button #}
+
+{% block left_top_button %}
+  <h2 class="tab-bodie-title">
+    &nbsp;&nbsp;&nbsp;{{ lc_tab_title }}
+  </h2>
+{% endblock left_top_button %}
+
+{% block central_top_button %}
+{% endblock central_top_button %}
+
+{# replace Close button with Close Not save #}
+
+{% block right_top_button %}
+  <div class="col text-right">
+    <button type="button" 
+      class="btn btn-primary close-btn"
+    >{{ btn_close_not_save }}</button>
+  </div>
+{% endblock right_top_button %}
+
+
+{# replace standard tab title #}
+
+{% block tab_title %}
+{% endblock tab_title %}
+
+{% block bottom_central_button %}
+{% endblock bottom_central_button %}
+

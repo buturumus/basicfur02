@@ -1,0 +1,31 @@
+{# parts/shown_matrix_edit_anymodel.html #}
+
+{% load static %}
+
+
+<table 
+  class="table col-12
+    table-sm text-nowrap table-striped table-bordered 
+    table-hover table-responsive-lg 
+    tab-matrix
+  "
+>
+  <tbody>
+  {% for object_keyvals_and_cls, headers_names_and_cls in headers_cells_zip %}
+    <tr>
+      <th scope="row"
+        class="{{ headers_names_and_cls.1 }}" 
+      >
+        {{ headers_names_and_cls.0 }}
+      </th>
+      <td 
+        class="{{ object_keyvals_and_cls.1 }}" 
+      >
+        {{ object_keyvals_and_cls.0 }}
+      </td>
+    </tr>
+  {% endfor %}
+
+  </tbody>
+</table>
+

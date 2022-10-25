@@ -3,46 +3,59 @@
 {% load static %}
 
 <div class="scrollbarable">
-<table 
-  class="table table-sm col-12
-    text-nowrap table-striped table-bordered table-hover table-responsive-lg 
-    tab-matrix
-  "
->
-  <thead class="thead-light">
-    <tr>
-      {% for header_name, header_class in headers_data %}
-        <th
-          class="{{ header_class }}"
-          scope="col"
-        >
-          {{ header_name }}
-        </th>
-      {% endfor %}
-        <th 
-          class="col-1"
-        >
-        </th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for obj in object_list_values %}
+  <table 
+    class="table col-12
+      text-nowrap table-striped table-bordered 
+      table-hover table-responsive-lg 
+      tab-matrix
+    "
+  >
+    <thead class="thead-light">
       <tr>
-        {% for the_key, the_val in obj.items %}
-          <td
-            {% comment %}
-            class="{{ the_val.1 }}"
-            {% endcomment %}
-            class="{{ the_val.1 }}"
+        {% for header_name, header_class in headers_data %}
+          <th
+            class="{{ header_class }}"
+            scope="col"
           >
-            {{ the_val }}
-          </td>
+            {{ header_name }}
+          </th>
         {% endfor %}
-          <td class="text-center">
-            &#128393;
-          </td>
+          <th 
+            class="col-1"
+          >
+          </th>
       </tr>
-    {% endfor %}
-  </tbody>
-</table>
+    </thead>
+    <tbody
+      class="table-sm"
+    >
+      {% for obj, the_pk in object_list_values_pks %}
+        <tr pk="{{ the_pk }}">
+          {% for the_key, the_val in obj.items %}
+            <td
+              {% comment %}
+              class="{{ the_val.1 }}"
+              {% endcomment %}
+              class="{{ the_val.1 }}"
+            >
+              {{ the_val.0 }}
+            </td>
+          {% endfor %}
+            {# pensil #}
+            <td 
+              class="text-center "
+            >
+              <a 
+                href="#" 
+                class="pensil"
+                uniq_category = "edit{{ model }}"
+                tab_cmd="{{ pensil_tab_cmd }}"
+              >
+                &#128393;
+              </a>
+            </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>

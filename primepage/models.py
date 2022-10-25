@@ -382,18 +382,21 @@ class KilledGoodsEntry(models.Model, ClassNameGetter):
         # return str(self.comment)
 
 
+# DB'less classes
+
+
 class DataForAnypart:
-    extra_context_keys = (
+    tabmaking_items_to_context_keys = (
         'tab_cmd',
         'matrix_type',
         'model',
-        # bodie_data_classname'
+        'pensil_tab_cmd',
     )
 
-    def get_extra_context(self):
+    def get_extra_context(self, *args, **kwargs):
         extra_context = {}
         # fill context with values from tabmaking constants' dictlist
-        for the_key in DataForAnypart.extra_context_keys:
+        for the_key in DataForAnypart.tabmaking_items_to_context_keys:
             extra_context.update({
                 the_key:
                 dict_list_search(
@@ -412,25 +415,149 @@ class DataForAnypart:
                     )
                 )
             })
+        # add  manually
+        extra_context.update({
+            'pk': self.pk,
+        })
         return extra_context
 
 
 class DataForSimplepartAnymodel:
+    extra_context_keys = ()
+
+    def get_extra_context(self, *arr_x_masks, **kwargs):
+        extra_context = {}
+        for the_key in self.__class__.extra_context_keys:
+            extra_context.update({the_key: lc(the_key)})
+        # add  manually
+        extra_context.update({
+            'lc_tab_title':
+            lc('side_or_pensil_' + self.tab_cmd)
+        })
+        return extra_context
+
+
+class DataForBodieSummaryAnymodel(DataForSimplepartAnymodel):
     extra_context_keys = (
         'btn_f5',
         'btn_close',
     )
 
-    def get_extra_context(self):
-        extra_context = {}
-        for the_key in DataForSimplepartAnymodel.extra_context_keys:
-            extra_context.update({the_key: lc(the_key)})
-        # add  manually
-        extra_context.update({
-            'lc_tab_title':
-            lc('sidemenu_' + self.tab_cmd)
+
+class DataForBodieEditAnymodel(DataForSimplepartAnymodel):
+    extra_context_keys = (
+        'btn_close_not_save',
+        'btn_save_close',
+        'btn_delete',
+    )
+
+
+class DataForMatrixSummaryAnymodel:
+
+    def get_context_data(self, *args, **kwargs):
+        context = {}
+        # upd.context with disassembled instances' keyvalues
+        context.update({
+            'object_list_values_pks':
+            zip(
+                # object_list_values and html classes
+                [{
+                    shown_key:
+                    [
+                        a_dict[shown_key]
+                        if (
+                            shown_key in a_dict
+                            and a_dict[shown_key]
+                        ) else
+                        self.model._meta.get_field(f'{shown_key}_id')
+                            .related_model
+                            .objects.get(id=a_dict[f'{shown_key}_id'])
+                        if (
+                            (f'{shown_key}_id') in a_dict
+                            and a_dict[f'{shown_key}_id']
+                        ) else
+                        '',
+
+                        cls,
+                        self.pk,
+                    ]
+                    for shown_key, cls in zip(
+                        MATRIX_CONSTS['summary']['shown_keys'][
+                            self.model],
+                        MATRIX_CONSTS['summary']['cell_html_classes'][
+                            self.model]
+                    )
+                } for a_dict in kwargs['object_list'].values()],
+                # pks
+                [obj.id for obj in kwargs['object_list']],
+            )
         })
-        return extra_context
+        # with header names and html classes
+        context.update({
+            'headers_data':
+            zip(
+                [
+                    lc(name_key) for name_key in
+                    MATRIX_CONSTS['summary'][
+                        'header_names_keys'][self.model]
+                ],
+                [
+                    cls for cls in
+                    MATRIX_CONSTS['summary'][
+                        'header_html_classes'][self.model]
+                ],
+            )
+        })
+        return context
+
+
+class DataForMatrixEditAnymodel:
+
+    def get_context_data(self, *args, **kwargs):
+        object_keyvals = kwargs['object_keyvals']
+        context = {}
+        # upd.context with selected object's keyvalues 
+        context.update({
+            'headers_cells_zip':
+            zip(
+                # object_keyvals_and_cls
+                [
+                    [
+                        getattr(object_keyvals, shown_key)
+                        if ( hasattr(object_keyvals, shown_key)
+                            and getattr(object_keyvals, shown_key)
+                        ) else
+                        self.model._meta.get_field(f'{shown_key}_id')
+                            .related_model
+                            .objects.get(id=getattr(
+                                object_keyvals, f'{shown_key}_id'))
+                        if ( hasattr(object_keyvals, f'{shown_key}_id')
+                            and getattr(object_keyvals, f'{shown_key}_id')
+                        ) else
+                        '',
+
+                        cls
+                    ]
+                    for shown_key, cls in zip(
+                        MATRIX_CONSTS['edit']['shown_keys'][
+                            self.model],
+                        MATRIX_CONSTS['edit']['cell_html_classes'][
+                            self.model]
+                    )
+                ],
+                # headers_names_and_cls
+                [
+                    [ lc(name_key), cls]
+                    for name_key, cls in zip(
+                        MATRIX_CONSTS['edit'][
+                            'header_names_keys'][self.model],
+                        MATRIX_CONSTS['edit'][
+                            'header_html_classes'][self.model]
+                    )
+                ]
+            )
+        })
+        return context
 
 
 # Class for all tabmaking elements(which can call a new tab)
@@ -442,52 +569,54 @@ class TabmakingItems:
         'tab_cmd',
         'matrix_type',
         'model',
-        # 'bodie_data_classname',
-        # 'matrix_data_classname',
+        'pensil_tab_cmd',
     )
     TABMAKING_ITEMS_CONSTS = (
         [['settings'] + i for i in [
-            ['service_entry', 'edit', MoneyEntry, ],
-            ['money_entries_log', 'summary', MoneyEntry, ],
-            ['partners_list', 'summary', Partner, ],
-            ['new_partner', 'edit', Partner, ],
-            ['materials_list', 'summary', Material, ],
-            ['new_material', 'edit', Material, ],
-            ['killed_money_entries_log', 'summary', MoneyEntry, ],
+            ['service_entry', 'edit', MoneyEntry, '', ],
+            ['money_entries_log', 'summary', MoneyEntry, 'pensil_money_entry', '', ],
+            ['partners_list', 'summary', Partner, 'pensil_partner', '', ],
+            ['new_partner', 'edit', Partner, '', ],
+            ['materials_list', 'summary', Material, 'pensil_material', '', ],
+            ['new_material', 'edit', Material, '', ],
+            ['killed_money_entries_log', 'summary', MoneyEntry, '', ],
         ]]
         + [['analitics'] + i for i in [
-            ['acc_sum_card', 'acc_sum_card', MoneyEntry, ],
-            ['inventories', 'inventories', GoodsEntry, ],
-            ['in_stock', 'in_stock', GoodsEntry, ],
-            ['partners_balance', 'partners_balance', Partner, ],
-            ['material_history', 'material_history', GoodsEntry, ],
+            ['acc_sum_card', 'acc_sum_card', MoneyEntry, '', ],
+            ['inventories', 'inventories', GoodsEntry, '', ],
+            ['in_stock', 'in_stock', GoodsEntry, '', ],
+            ['partners_balance', 'partners_balance', Partner, '', ],
+            ['material_history', 'material_history', GoodsEntry, '', ],
         ]]
         + [['trading'] + i for i in [
-            ['shipping', 'edit', MoneyEntry, ],
-            ['make_invoice', 'edit', MoneyEntry, ],
-            ['get_invoice', 'edit', MoneyEntry, ],
+            ['shipping', 'edit', MoneyEntry, '', ],
+            ['make_invoice', 'edit', MoneyEntry, '', ],
+            ['get_invoice', 'edit', MoneyEntry, '', ],
         ]]
         + [['production'] + i for i in [
-            ['materials_purchase', 'edit', MoneyEntry, ],
-            ['materials_to_production', 'edit', MoneyEntry, ],
-            ['consumables_purchase', 'edit', MoneyEntry, ],
-            ['production_to_stock', 'edit', MoneyEntry, ],
+            ['materials_purchase', 'edit', MoneyEntry, '', ],
+            ['materials_to_production', 'edit', MoneyEntry, '', ],
+            ['consumables_purchase', 'edit', MoneyEntry, '', ],
+            ['production_to_stock', 'edit', MoneyEntry, '', ],
         ]]
         + [['finance'] + i for i in [
-            ['cache_in', 'edit', MoneyEntry, ],
-            ['cache_out', 'edit', MoneyEntry, ],
-            ['to_bank', 'edit', MoneyEntry, ],
-            ['from_bank', 'edit', MoneyEntry, ],
+            ['cache_in', 'edit', MoneyEntry, '', ],
+            ['cache_out', 'edit', MoneyEntry, '', ],
+            ['to_bank', 'edit', MoneyEntry, '', ],
+            ['from_bank', 'edit', MoneyEntry, '', ],
         ]]
         + [['employees'] + i for i in [
-            ['calc_salary', 'edit', MoneyEntry, ],
-            ['pay_salary', 'edit', MoneyEntry, ],
-            ['accountable_cache_out', 'edit', MoneyEntry, ],
-            ['accountable_cache_return', 'edit', MoneyEntry, ],
-            ['accountable_cache_spent', 'edit', MoneyEntry, ],
+            ['calc_salary', 'edit', MoneyEntry, '', ],
+            ['pay_salary', 'edit', MoneyEntry, '', ],
+            ['accountable_cache_out', 'edit', MoneyEntry, '', ],
+            ['accountable_cache_return', 'edit', MoneyEntry, '', ],
+            ['accountable_cache_spent', 'edit', MoneyEntry, '', ],
         ]]
         + [['admin'] + i for i in [
-            ['wipe_entries', 'wipe_entries', '', ],
+            ['wipe_entries', 'wipe_entries', '', '', ],
+        ]]
+        + [['nosidebar'] + i for i in [
+            ['pensil_partner', 'edit', Partner, '', ],
         ]]
     )
 
@@ -563,7 +692,7 @@ class SideMenu:
                 level1_items.append([
                     the_tabmaking_item_dict['tab_cmd'],
                     LC_NAMES[
-                        'sidemenu_'
+                        'side_or_pensil_'
                         + the_tabmaking_item_dict['tab_cmd']
                     ][lc_num],
                     the_tabmaking_item_dict['matrix_type'],
@@ -572,10 +701,18 @@ class SideMenu:
             sidemenu_items.append([
                 level0_item_line['name'],
                 LC_NAMES[
-                    'sidemenu_' + level0_item_line['name']][lc_num],
+                    'side_or_pensil_' + level0_item_line['name']][lc_num],
                 level1_items,
             ])
         return sidemenu_items
+
+
+# Pensil clicks
+
+
+PENSIL_CONSTS = (
+    ['pensil_partner', 'edit', Partner, ],
+)
 
 
 MATRIX_CONSTS = {
@@ -604,6 +741,27 @@ MATRIX_CONSTS = {
                 # pensil,
             ),
         },
+        'header_names_keys': {
+            Partner: (
+                'summary_partner_name1',
+                'summary_partner_name2',
+                'summary_partner_group',
+            ),
+            Material: (
+                'summary_material_name',
+                '',
+            ),
+            MoneyEntry: (
+                'summary_m_entry_humanid',
+                'summary_m_entry_date',
+                'summary_m_entry_partner',
+                'summary_m_entry_hot_entry',
+                'summary_m_entry_deb_account',
+                'summary_m_entry_cred_account',
+                'summary_m_entry_money',
+                'summary_m_entry_comment',
+            ),
+        },
         'header_html_classes': {
             Partner: (
                 'col-5 text-left',
@@ -625,45 +783,113 @@ MATRIX_CONSTS = {
                 'col-3',
             ),
         },
-        'header_names_keys': {
+        'cell_html_classes': {
             Partner: (
-                'summary_parter_name1',
-                'summary_parter_name2',
-                'summary_parter_group',
+                'text-left',
+                'text-left',
+                'text-left',
             ),
             Material: (
-                'summary_material_name',
+                'text-left',
                 '',
             ),
             MoneyEntry: (
-                'summary_m_entry_humanid',
-                'summary_m_entry_date',
-                'summary_m_entry_partner',
-                'summary_m_entry_hot_entry',
-                'summary_m_entry_deb_account',
-                'summary_m_entry_cred_account',
-                'summary_m_entry_money',
-                'summary_m_entry_comment',
+                '',
+                'text-right',
+                '',
+                '',
+                'text-center',
+                'text-center',
+                'text-right',
+                '',
             ),
         },
     },
     'edit': {
         'shown_keys': {
             Partner: (
+                'name',
+                'last_name',
+                'partner_group',
+                # pensil,
+            ),
+            Material: (
+                'name',
+                '',
+                # pensil,
+            ),
+            MoneyEntry: (
+                'humanid',
+                'date',
+                'partner',
+                'hot_entry',
+                'deb_account',
+                'cred_account',
+                'money',
+                'comment',
+                # pensil,
             ),
         },
         'header_names_keys': {
             Partner: (
+                'edit_partner_name1',
+                'edit_partner_name2',
+                'edit_partner_group',
+            ),
+            Material: (
+                'edit_material_name',
+                '',
+            ),
+            MoneyEntry: (
+                'edit_m_entry_humanid',
+                'edit_m_entry_date',
+                'edit_m_entry_partner',
+                'edit_m_entry_hot_entry',
+                'edit_m_entry_deb_account',
+                'edit_m_entry_cred_account',
+                'edit_m_entry_money',
+                'edit_m_entry_comment',
             ),
         },
         'header_html_classes': {
             Partner: (
+                'col-4 text-left',
+                'col-4 text-left',
+                'col-4 text-left',
+            ),
+            Material: (
+                'col-4 text-left',
+            ),
+            MoneyEntry: (
+                '',
+                'text-right',
+                '',
+                '',
+                'text-center',
+                'text-center',
+                'text-right',
+                '',
             ),
         },
         'cell_html_classes': {
             Partner: (
+                'text-left',
+                'text-left',
+                'text-left',
+            ),
+            Material: (
+                'text-left',
+            ),
+            MoneyEntry: (
+                '',
+                'text-right',
+                '',
+                '',
+                'text-center',
+                'text-center',
+                'text-right',
+                '',
             ),
         },
     },
 }
-

@@ -43,21 +43,26 @@
     </div>
   </p>
 
+
   {# tab frame's title, same as header #}
   {% block tab_title %}
     <h2 class="tab-bodie-title">{{ lc_tab_title }}</h2>
   {% endblock tab_title %}
+
 
   {# matrix body #}
   <div 
     class="tab-matrix-cont">
   </div> 
 
+
  {# bottom keys block #}
   <p>
     <div class="row">
+
       {% block bottom_left_button %}
-        {% if sub_id != 0  %}
+        {# replace delete-button for new items #}
+        {% if pk %}
           <div class="col text-center">
             <button 
               type="button" 
@@ -99,16 +104,5 @@
     </div>
   </p>
 
-  {% block js %}
-  {% endblock js %}
-{% comment %}
-  {% with js_filename=matrix_type|stringformat:'s' %}
-    <script id="test" src="{% static 'js/home/tabs/'|add:js_filename|add:'.js' %}"></script>
-  {% endwith %}
-    {% include 'home/tabs/template_del_yes_no.html' %}
-{% endcomment %}
-
-
 </div>
-{# /tab body #}
 
