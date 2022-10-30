@@ -1,31 +1,71 @@
 {# parts/shown_matrix_edit_anymodel.html #}
 
 {% load static %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_field %}
 
+<form action="." method="POST">
 
-<table 
-  class="table col-12
-    table-sm text-nowrap table-striped table-bordered 
-    table-hover table-responsive-lg 
-    tab-matrix
-  "
->
-  <tbody>
-  {% for object_keyvals_and_cls, headers_names_and_cls in headers_cells_zip %}
-    <tr>
-      <th scope="row"
-        class="{{ headers_names_and_cls.1 }}" 
+  <table 
+    class="table col-12
+      table-sm text-nowrap table-striped table-bordered 
+      table-hover table-responsive-lg 
+      tab-matrix
+    "
+  >
+    <tbody class="table-sm">
+    {% csrf_token %}
+    {% for object_keyvals_and_cls, headers_names_and_cls, form_field in headers_cells_form_zip %}
+      <tr
       >
-        {{ headers_names_and_cls.0 }}
-      </th>
-      <td 
-        class="{{ object_keyvals_and_cls.1 }}" 
-      >
-        {{ object_keyvals_and_cls.0 }}
-      </td>
-    </tr>
-  {% endfor %}
+        <th scope="row"
+          class="{{ headers_names_and_cls.1 }} align-middle" 
+        >
+          {{ headers_names_and_cls.0 }}
+        </th>
+        <td 
+          class="{{ object_keyvals_and_cls.2 }} align-middle ugly-child-crispy-margin" 
+        >
+          {{ form_field|as_crispy_field }}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
 
-  </tbody>
-</table>
+  {# bottom keys block #}
+  <p>
+  <div class="row">
+
+    {# bottom_left_button #}
+    {# replace delete-button for new items #}
+    {% if pk %}
+      <div class="col text-center">
+        <button 
+          type="button" 
+          class="btn btn-danger del-btn"
+        >{{ btn_delete }}</button>
+      </div>
+    {% endif %}
+
+    {# bottom_right_button #}
+    {% if tab_model == "transaction" %}
+        <div class="col text-center">
+          <button 
+            type="submit" 
+            class="btn btn-success save-btn"
+          >{{ btn_save_close_m_entry }}</button>
+        </div>
+    {% else %}
+      <div class="col text-center">
+        <button 
+          type="submit" 
+          class="btn btn-success save-btn"
+        >{{ btn_save_close }}</button>
+      </div>
+    {% endif %}
+  </div>
+  </p>
+
+</form>
 

@@ -191,6 +191,9 @@ class ShownMatrixGetter extends PagepartGetter {
       // put downloaded content to it's place
       const addedMatrix = this.objToAppendTo.append(resp)
         .children(':last-child');
+      // fix ulgy bottom crispy field's margin
+      $(addedMatrix).find('.ugly-child-crispy-margin .form-group')
+        .addClass('m-1');
       // and activate pensils
       addedMatrix.find('.pensil').click(function() {
         // check to avoid duplication 

@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     # 'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
+    'crispy_forms',
     'misc.apps.MiscConfig',
     'users.apps.UsersConfig',
     'parts.apps.PartsConfig',
@@ -151,4 +152,8 @@ LOGOUT_REDIRECT_URL = 'primepage'
 # heroku
 # db_from_env = dj_database_url.config(conn_max_age=500)
 # DATABASES['default'].update(db_from_env)
+
+# django-crispy-forms
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+# CRISPY_TEMPLATE_PACK = 'uni_form'
 

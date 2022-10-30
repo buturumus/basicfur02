@@ -1,10 +1,14 @@
 # primepage/views.py
 
+import logging  # noqa
 # from django.shortcuts import render
 from django.views.generic import TemplateView
-from misc import lc_strings
 from .models import SideMenu
-import logging  # noqa
+from .lc_data import LcData
+
+lc = LcData.lc
+lc_num = LcData.lc_num
+LC_NAMES = LcData.LC_NAMES
 
 
 class Primepage(TemplateView):
@@ -13,10 +17,9 @@ class Primepage(TemplateView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         # add to context localized names
-        for thekey in lc_strings.LC_NAMES:
-            context[thekey] = lc_strings.LC_NAMES[thekey][lc_strings.lc_num]
+        for thekey in LC_NAMES:
+            context[thekey] = LC_NAMES[thekey][lc_num]
         # add sidebar menu's items:
         context['sidemenu_items'] = SideMenu.get_sidemenu_items()
-        # logging.warning(context['SIDEMENU_ITEMS'])
         return context
 

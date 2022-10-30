@@ -5,6 +5,7 @@ from django.views.generic.list import ListView  # noqa
 # from django.shortcuts import render
 # from models import AsViewContainer
 # from django.template.loader import render_to_string
+from django.http import HttpResponse
 """
 from django.http import JsonResponse
 from django.http import Http404
@@ -12,96 +13,112 @@ from django.views.defaults import page_not_found
 from django.views.generic.list import ListView
 """
 from django.views.generic.base import TemplateView
-from django.views.generic import DetailView
+# from django.views.generic import DetailView
 from django.views.generic import CreateView
-from misc.common_functions import lc
+from django.views.generic import UpdateView
+# from misc.common_functions import lc
+# from misc.common_functions import lc
+from .forms import EditPartnerForm
+from .forms import EditMaterialForm
 from primepage.models import Partner
 from primepage.models import Material
 from primepage.models import MoneyEntry
-from primepage.models import DataForAnypart
-from primepage.models import DataForSimplepartAnymodel
-from primepage.models import DataForBodieSummaryAnymodel
-from primepage.models import DataForBodieEditAnymodel
-from primepage.models import DataForMatrixSummaryAnymodel
-from primepage.models import DataForMatrixEditAnymodel
+from primepage.models import TabStarter
+from primepage.models import MultimodelMatrixSummary
+from primepage.models import MultimodelMatrixEdit
+from primepage.models import MATRIX_CONSTS
+from primepage.lc_data import LcData
 
 
 # Class for all kinds of tab parts
-class ShownAnypart:
+class ShownAnypart(TabStarter, LcData):
     tab_cmd = None
     pk = 0
 
     def __init__(self, *args, **kwargs):
         self.tab_cmd = kwargs['tab_cmd']
         self.pk = kwargs['pk']
+        self.label_keys_to_localize = ()
+        self.tabclick_keys_to_localize = ()
+        # fill std.fields width init.costs.data set
+        TabStarter.__init__(self, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
         context = {}
-        context.update(DataForAnypart.get_extra_context(self))
+        context.update(
+            TabStarter.get_context_data(self)
+        )
+        context.update(
+            LcData.get_context_data(self)
+        )
+        # add  manually
+        context.update({'pk': self.pk})
+        #
+        logging.warning(
+            context
+        )
+        #
         return context
 
 
 # Classes for simpliest tab parts: bodies and tab headers
-#
-# Based on template view class
-class ShownSimplepartAnymodel(TemplateView,
-                              ShownAnypart,
-                              DataForSimplepartAnymodel
-                              ):
+
+# based on template view class
+class ShownBodieOrHeaderAnymodel(TemplateView, ShownAnypart):
 
     def __init__(self, *args, **kwargs):
         TemplateView.__init__(self, *args, **kwargs)
         ShownAnypart.__init__(self, *args, **kwargs)
+        self.tabclick_keys_to_localize = ('lc_tab_title', )
 
     def get_context_data(self, *args, **kwargs):
         context = TemplateView.get_context_data(self, *args, **kwargs)
-        context.update(ShownAnypart.get_context_data(
-            self, *args, **kwargs))
-        context.update(DataForSimplepartAnymodel.get_extra_context(
-            self, *args, **kwargs))
-        # logging.warning(context)
+        context.update(
+            ShownAnypart.get_context_data(self, *args, **kwargs)
+        )
+        #
+        context.update(
+            ShownAnypart.get_context_data(self, *args, **kwargs)
+        )
         return context
 
 
-class ShownTabheader(ShownSimplepartAnymodel):
+class ShownTabheader(ShownBodieOrHeaderAnymodel):
     template_name = 'parts/shown_tabheader.html'
 
+    def __init__(self, *args, **kwargs):
+        ShownBodieOrHeaderAnymodel.__init__(self, *args, **kwargs)
 
-class ShownBodieSummaryAnymodel(ShownSimplepartAnymodel,
-                                DataForBodieSummaryAnymodel
-                                ):
+
+class ShownBodieSummaryAnymodel(ShownBodieOrHeaderAnymodel):
     template_name = 'parts/shown_bodie_summary_anymodel.html'
 
-    def get_context_data(self, *args, **kwargs):
-        context = ShownSimplepartAnymodel.get_context_data(
-            self, *args, **kwargs)
-        context.update(DataForBodieSummaryAnymodel.get_extra_context(
-            self, *args, **kwargs))
-        return context
+    def __init__(self, *args, **kwargs):
+        ShownBodieOrHeaderAnymodel.__init__(self, *args, **kwargs)
+        self.label_keys_to_localize = ('btn_f5', 'btn_close', )
 
 
-class ShownBodieEditAnymodel(ShownSimplepartAnymodel,
-                             DataForBodieEditAnymodel,
-                             ):
+class ShownBodieEditAnymodel(ShownBodieOrHeaderAnymodel):
     template_name = 'parts/shown_bodie_edit_anymodel.html'
 
-    def get_context_data(self, *args, **kwargs):
-        context = ShownSimplepartAnymodel.get_context_data(
-            self, *args, **kwargs)
-        context.update(DataForBodieSummaryAnymodel.get_extra_context(
-            self, *args, **kwargs))
-        return context
+    def __init__(self, *args, **kwargs):
+        ShownBodieOrHeaderAnymodel.__init__(self, *args, **kwargs)
+        self.label_keys_to_localize = ('btn_close_not_save', )
+        # ('btn_save_close', 'btn_delete', )
+        # 'ShownMatrixEditAnymodel':
+        #     ('btn_save_close', 'btn_delete', ),
 
 
-# More comples classes for other tab parts=matrixx
-#
+# More comples classes for matrixx tab part
+
 class ShownMatrixAnymodel(ShownAnypart):
     pass
 
 
-# For summary-like matrixx.
-# Based on list view class.
-class ShownMatrixSummaryAnymodel(ListView, ShownMatrixAnymodel):
+# anymodel class for summary-like matrixx, based on list view
+class ShownMatrixSummaryAnymodel(ListView,
+                                 ShownMatrixAnymodel,
+                                 MultimodelMatrixSummary):
     template_name = 'parts/shown_matrix_summary_anymodel.html'
 
     def __init__(self, *args, **kwargs):
@@ -114,14 +131,12 @@ class ShownMatrixSummaryAnymodel(ListView, ShownMatrixAnymodel):
             ShownMatrixAnymodel.get_context_data(self, *args, **kwargs)
         )
         context.update(
-            DataForMatrixSummaryAnymodel.get_context_data(
-                self, *args, 
-                object_list=context['object_list'], 
+            MultimodelMatrixSummary.get_context_data(
+                self, *args,
+                object_list=context['object_list'],
                 **kwargs
             )
         )
-        #
-#       logging.warning(context)
         return context
 
 
@@ -137,63 +152,124 @@ class ShownMatrixSummaryMoneyEntry(ShownMatrixSummaryAnymodel):
     model = MoneyEntry
 
 
-# For edit-like matrixx.
-# Based on detail view class.
-class ShownMatrixEditAnymodel(DetailView, ShownMatrixAnymodel):
-    template_name = 'parts/shown_matrix_edit_anymodel.html'
+# For edit-like matrixx
+
+# common class for both new and edit cases
+class ShownMatrixNewOrEditAnymodel(ShownMatrixAnymodel,
+                                   MultimodelMatrixEdit):
 
     def __init__(self, *args, **kwargs):
-        if kwargs['pk'] != 0:
-            DetailView.__init__(self, *args, **kwargs)
         ShownMatrixAnymodel.__init__(self, *args, **kwargs)
+        self.template_name = 'parts/shown_matrix_edit_anymodel.html'
+        self.fields = MATRIX_CONSTS['edit']['shown_keys'][self.model]
+        # move bottom buttons from bodie to form == to matrix
+        self.label_keys_to_localize = ('btn_save_close', 'btn_delete', )
 
     def get_context_data(self, *args, **kwargs):
-        context = DetailView.get_context_data(self, *args, **kwargs)
-        context.update(
-            ShownMatrixAnymodel.get_context_data(self, *args, **kwargs)
-        )
-        context.update(
-            DataForMatrixEditAnymodel.get_context_data(
-                self, *args, 
-                object_keyvals=context['object'], 
-                **kwargs
-            )
-        )
-        #
-        # logging.warning(context)
+        context = ShownMatrixAnymodel.get_context_data(self, *args, **kwargs)
+        form = self.form_name()
+        context.update({'form': form})
         return context
 
+    def post(self, request, *args, **kwargs):
+        form = EditPartnerForm(request.POST)
+        if form.is_valid:
+            partner = form.save()
+            #
+            logging.warning(partner)
+            #
+            # partner.save()
+            return HttpResponse('')
+        else:
+            return HttpResponse('')
 
-class ShownMatrixEditPartner(ShownMatrixEditAnymodel):
-    model = Partner
 
-
-class ShownMatrixNewAnymodel(CreateView, ShownMatrixAnymodel):
-    template_name = 'parts/shown_matrix_edit_anymodel.html'
+# anymodel class for new case only, based on create view
+class ShownMatrixNewAnymodel(CreateView, ShownMatrixNewOrEditAnymodel):
 
     def __init__(self, *args, **kwargs):
+        ShownMatrixNewOrEditAnymodel.__init__(self, *args, **kwargs)
         CreateView.__init__(self, *args, **kwargs)
-        ShownMatrixAnymodel.__init__(self, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
-        context = CreateView.get_context_data(self, *args, **kwargs)
+        context = ShownMatrixNewOrEditAnymodel.get_context_data(
+            self, *args, **kwargs)
         context.update(
-            ShownMatrixAnymodel.get_context_data(self, *args, **kwargs)
+            CreateView.get_context_data(self, *args, **kwargs)
         )
         context.update(
-            DataForMatrixEditAnymodel.get_context_data(
-                self, *args, 
-                object_keyvals=context['object'], 
+            MultimodelMatrixEdit.get_context_data(
+                self, *args,
+                object_keyvals={},  # empty for 'new'
+                form=context['form'],
                 **kwargs
             )
         )
-        #
-        # logging.warning(context)
         return context
 
 
-class ShownMatrixNewPartner(ShownMatrixNewAnymodel):
+# common data for edit case only, based on update view
+class ShownMatrixEditAnymodel(UpdateView, ShownMatrixNewOrEditAnymodel):
+
+    def __init__(self, *args, **kwargs):
+        ShownMatrixNewOrEditAnymodel.__init__(self, *args, **kwargs)
+        UpdateView.__init__(self, *args, **kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        context = ShownMatrixNewOrEditAnymodel.get_context_data(
+            self, *args, **kwargs)
+        context.update(
+            UpdateView.get_context_data(self, *args, **kwargs)
+        )
+        context.update(
+            MultimodelMatrixEdit.get_context_data(
+                self, *args,
+                object_keyvals=context['object'],  # got from update view
+                form=context['form'],
+                **kwargs
+            )
+        )
+        return context
+
+
+# new/edit Partner
+class ShownMatrixNewOrEditPartner:
     model = Partner
+    form_name = EditPartnerForm
+
+
+class ShownMatrixNewPartner(ShownMatrixNewOrEditPartner,
+                            ShownMatrixNewAnymodel):
+
+    def __init__(self, *args, **kwargs):
+        ShownMatrixNewAnymodel.__init__(self, *args, **kwargs)
+
+
+class ShownMatrixEditPartner(ShownMatrixNewOrEditPartner,
+                             ShownMatrixEditAnymodel):
+
+    def __init__(self, *args, **kwargs):
+        ShownMatrixEditAnymodel.__init__(self, *args, **kwargs)
+
+
+# new/edit Material
+class ShownMatrixNewOrEditMaterial:
+    model = Material
+    form_name = EditMaterialForm
+
+
+class ShownMatrixNewMaterial(ShownMatrixNewOrEditMaterial,
+                             ShownMatrixNewAnymodel):
+
+    def __init__(self, *args, **kwargs):
+        ShownMatrixNewAnymodel.__init__(self, *args, **kwargs)
+
+
+class ShownMatrixEditMaterial(ShownMatrixNewOrEditPartner,
+                              ShownMatrixEditAnymodel):
+
+    def __init__(self, *args, **kwargs):
+        ShownMatrixEditAnymodel.__init__(self, *args, **kwargs)
 
 
 class ShownError(TemplateView):
@@ -231,7 +307,7 @@ def selected_view(request, tab_cmd, part_stage, *args, **kwargs):
         view_class = ShownTabheader
     #
     # tab matrix:
-    # 3rd stage, could be independent on reload of existing tab
+    # 3rd stage, could be done independent if reload an existing tab
     elif part_stage == 'matrix':
         if tab_cmd == 'partners_list':
             view_class = ShownMatrixSummaryPartner
@@ -241,7 +317,10 @@ def selected_view(request, tab_cmd, part_stage, *args, **kwargs):
             view_class = ShownMatrixSummaryMoneyEntry
         elif tab_cmd in ('new_partner', 'pensil_partner'):
             view_class = ShownMatrixNewPartner if kwargs[
-                'pk'] == 0 else ShownMatrixEditPartner 
+                'pk'] == 0 else ShownMatrixEditPartner
+        elif tab_cmd in ('new_material', 'pensil_material'):
+            view_class = ShownMatrixNewMaterial if kwargs[
+                'pk'] == 0 else ShownMatrixEditMaterial
         else:
             view_class = ShownError
     else:

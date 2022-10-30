@@ -34,7 +34,7 @@ class ClassNameGetter:
     def get_class_name(cls):
         return cls.__name__
 
-    # classname's getting works correct with an instance of a model only 
+    # classname's getting works correct with an instance of a model only
     @staticmethod
     def name_from_model(model):
         try:
