@@ -1,25 +1,23 @@
 # parts/views.py
 
 import logging  # noqa
-from django.views.generic.list import ListView  # noqa
-# from django.shortcuts import render
-# from models import AsViewContainer
-# from django.template.loader import render_to_string
-from django.http import HttpResponse
-"""
 from django.http import JsonResponse
+"""
+# from django.http import HttpResponse
 from django.http import Http404
 from django.views.defaults import page_not_found
-from django.views.generic.list import ListView
-"""
-from django.views.generic.base import TemplateView
-# from django.views.generic import DetailView
-from django.views.generic import CreateView
-from django.views.generic import UpdateView
-# from misc.common_functions import lc
-# from misc.common_functions import lc
+from datetime import datetime
+from django.shortcuts import render
+from django.template.loader import render_to_string
+from django.views.generic import DetailView
 from .forms import EditPartnerForm
 from .forms import EditMaterialForm
+"""
+from django.views.generic.list import ListView  # noqa
+from django.views.generic.base import TemplateView
+from django.views.generic import CreateView
+from django.views.generic import UpdateView
+# app-level imports
 from primepage.models import Partner
 from primepage.models import Material
 from primepage.models import MoneyEntry
@@ -32,10 +30,12 @@ from primepage.lc_data import LcData
 
 # Class for all kinds of tab parts
 class ShownAnypart(TabStarter, LcData):
+    request = None
     tab_cmd = None
     pk = 0
 
     def __init__(self, *args, **kwargs):
+        self.request = kwargs['request']
         self.tab_cmd = kwargs['tab_cmd']
         self.pk = kwargs['pk']
         self.label_keys_to_localize = ()
@@ -54,9 +54,9 @@ class ShownAnypart(TabStarter, LcData):
         # add  manually
         context.update({'pk': self.pk})
         #
-        logging.warning(
-            context
-        )
+        # logging.warning(
+        #     context
+        # )
         #
         return context
 
@@ -73,10 +73,6 @@ class ShownBodieOrHeaderAnymodel(TemplateView, ShownAnypart):
 
     def get_context_data(self, *args, **kwargs):
         context = TemplateView.get_context_data(self, *args, **kwargs)
-        context.update(
-            ShownAnypart.get_context_data(self, *args, **kwargs)
-        )
-        #
         context.update(
             ShownAnypart.get_context_data(self, *args, **kwargs)
         )
@@ -104,12 +100,9 @@ class ShownBodieEditAnymodel(ShownBodieOrHeaderAnymodel):
     def __init__(self, *args, **kwargs):
         ShownBodieOrHeaderAnymodel.__init__(self, *args, **kwargs)
         self.label_keys_to_localize = ('btn_close_not_save', )
-        # ('btn_save_close', 'btn_delete', )
-        # 'ShownMatrixEditAnymodel':
-        #     ('btn_save_close', 'btn_delete', ),
 
 
-# More comples classes for matrixx tab part
+# More complex classes for matrixx tab part
 
 class ShownMatrixAnymodel(ShownAnypart):
     pass
@@ -164,24 +157,25 @@ class ShownMatrixNewOrEditAnymodel(ShownMatrixAnymodel,
         self.fields = MATRIX_CONSTS['edit']['shown_keys'][self.model]
         # move bottom buttons from bodie to form == to matrix
         self.label_keys_to_localize = ('btn_save_close', 'btn_delete', )
+        # get initial values from model
+        # initial = self.model.get_initials(self.request)
 
     def get_context_data(self, *args, **kwargs):
         context = ShownMatrixAnymodel.get_context_data(self, *args, **kwargs)
-        form = self.form_name()
-        context.update({'form': form})
         return context
 
-    def post(self, request, *args, **kwargs):
-        form = EditPartnerForm(request.POST)
-        if form.is_valid:
-            partner = form.save()
-            #
-            logging.warning(partner)
-            #
-            # partner.save()
-            return HttpResponse('')
-        else:
-            return HttpResponse('')
+    # common for 'new' and 'edit' saving procedure
+    def form_valid(self, form):
+        # add keyvals written on backend side
+        written_by_backend = self.model.get_written_by_backend(self.request)
+        for field in written_by_backend:
+            setattr(form.instance, field, written_by_backend[field])
+        # save instance
+        response = super().form_valid(form)
+        return (
+            JsonResponse({'pk': self.object.pk})
+            if self.request.is_ajax() else response
+        )
 
 
 # anymodel class for new case only, based on create view
@@ -190,6 +184,7 @@ class ShownMatrixNewAnymodel(CreateView, ShownMatrixNewOrEditAnymodel):
     def __init__(self, *args, **kwargs):
         ShownMatrixNewOrEditAnymodel.__init__(self, *args, **kwargs)
         CreateView.__init__(self, *args, **kwargs)
+        # self.initial = self.model.get_initials(self.request)
 
     def get_context_data(self, *args, **kwargs):
         context = ShownMatrixNewOrEditAnymodel.get_context_data(
@@ -214,6 +209,7 @@ class ShownMatrixEditAnymodel(UpdateView, ShownMatrixNewOrEditAnymodel):
     def __init__(self, *args, **kwargs):
         ShownMatrixNewOrEditAnymodel.__init__(self, *args, **kwargs)
         UpdateView.__init__(self, *args, **kwargs)
+        # self.initial = self.model.get_initials(self.request)
 
     def get_context_data(self, *args, **kwargs):
         context = ShownMatrixNewOrEditAnymodel.get_context_data(
@@ -231,11 +227,24 @@ class ShownMatrixEditAnymodel(UpdateView, ShownMatrixNewOrEditAnymodel):
         )
         return context
 
+    def form_valid(self, form):
+        # add keyvals written on backend side
+        written_by_backend = self.model.get_written_by_backend(self.request)
+        for field in written_by_backend:
+            setattr(form.instance, field, written_by_backend[field])
+        # save instance
+        response = super().form_valid(form)
+        return (
+            JsonResponse({'pk': self.object.pk})
+            if self.request.is_ajax() else response
+        )
+    # def form_valid(self, form):
+    #     return self.render_to_response(self.get_context_data())
+
 
 # new/edit Partner
 class ShownMatrixNewOrEditPartner:
     model = Partner
-    form_name = EditPartnerForm
 
 
 class ShownMatrixNewPartner(ShownMatrixNewOrEditPartner,
@@ -255,7 +264,6 @@ class ShownMatrixEditPartner(ShownMatrixNewOrEditPartner,
 # new/edit Material
 class ShownMatrixNewOrEditMaterial:
     model = Material
-    form_name = EditMaterialForm
 
 
 class ShownMatrixNewMaterial(ShownMatrixNewOrEditMaterial,
@@ -279,7 +287,7 @@ class ShownError(TemplateView):
 
 
 def selected_view(request, tab_cmd, part_stage, *args, **kwargs):
-    # unwrap urlconf's vals: tab_cmd and part_stage as simple vars
+    # unwrap urlconf's vals: request, tab_cmd and part_stage as simple vars
     # and pk as a kwargs val - only it must be transferred with view'a kwargs
     #
     # tab bodie:
@@ -327,6 +335,7 @@ def selected_view(request, tab_cmd, part_stage, *args, **kwargs):
         view_class = ShownError
     # return view of selected class
     return view_class.as_view(
+        request=request,
         tab_cmd=tab_cmd,
         pk=kwargs['pk']
     )(request, *args, **kwargs)

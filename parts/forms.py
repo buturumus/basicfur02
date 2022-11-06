@@ -8,7 +8,9 @@ class EditPartnerForm(forms.ModelForm):
 
     class Meta:
         model = Partner
-        fields = MATRIX_CONSTS['edit']['shown_keys'][Partner]
+        fields = (
+            MATRIX_CONSTS['edit']['shown_keys'][Partner]
+        )
 
 
 class EditMaterialForm(forms.ModelForm):
@@ -16,4 +18,3 @@ class EditMaterialForm(forms.ModelForm):
     class Meta:
         model = Material
         fields = MATRIX_CONSTS['edit']['shown_keys'][Material]
-

@@ -17,6 +17,19 @@ lc_num = LcData.lc_num
 LC_NAMES = LcData.LC_NAMES
 
 
+class SaveRememberer:
+
+    @staticmethod
+    def get_written_by_backend(request):
+        return {
+            'created_by': request.user,
+            'create_date': datetime.now(),
+        }
+
+    def get_absolute_url(self):
+        return '.'
+
+
 class Account(models.Model, Initable, ClassNameGetter):
     DEFAULT_KEYS = ('number', )
     DEFAULT_VALS = (
@@ -42,7 +55,7 @@ class PartnerGroup(models.Model, Initable, ClassNameGetter):
         return self.name
 
 
-class Partner(models.Model, ClassNameGetter):
+class Partner(models.Model, ClassNameGetter, SaveRememberer):
     id = models.AutoField(primary_key=True)
     name = models.CharField('', max_length=50)
     last_name = models.CharField(
@@ -52,8 +65,6 @@ class Partner(models.Model, ClassNameGetter):
         null=True,
         blank=True,
     )
-    create_date = models.DateTimeField(
-        default=datetime(1970, 1, 1, 0, 0, 0, 0))
     partner_group = models.ForeignKey(
         PartnerGroup,
         verbose_name='',
@@ -63,20 +74,29 @@ class Partner(models.Model, ClassNameGetter):
         blank=True,
         on_delete=models.CASCADE
     )
+    create_date = models.DateTimeField(
+        # default=datetime(1970, 1, 1, 0, 0, 0, 0)
+    )
     created_by = models.ForeignKey(
         # 'users.CustomUser',
         CustomUser,
         related_name='partner_created_by',
-        default=None,
+        # default=None,
         null=True,
         blank=True,
         on_delete=models.CASCADE)
+
+    # initial data for forms
+    @staticmethod
+    def get_initials(request):
+        return {
+        }
 
     def __str__(self):
         return self.name
 
 
-class Material(models.Model, ClassNameGetter):
+class Material(models.Model, ClassNameGetter, SaveRememberer):
     id = models.AutoField(primary_key=True)
     name = models.CharField('', max_length=256)
     create_date = models.DateTimeField(
@@ -122,7 +142,7 @@ class HotEntry(models.Model, Initable, ClassNameGetter):
         return LC_NAMES[f'hot_entry_{self.name}'][lc_num]
 
 
-class MoneyEntry(models.Model, ClassNameGetter):
+class MoneyEntry(models.Model, ClassNameGetter, SaveRememberer):
     id = models.AutoField(primary_key=True)
     humanid = models.CharField(
         max_length=32,
@@ -192,7 +212,7 @@ class MoneyEntry(models.Model, ClassNameGetter):
         return self.humanid
 
 
-class KilledMoneyEntry(models.Model, ClassNameGetter):
+class KilledMoneyEntry(models.Model, ClassNameGetter, SaveRememberer):
     id = models.AutoField(primary_key=True)
     humanid = models.CharField(
         max_length=32,
@@ -270,7 +290,7 @@ class KilledMoneyEntry(models.Model, ClassNameGetter):
         return self.humanid
 
 
-class GoodsEntry(models.Model, ClassNameGetter):
+class GoodsEntry(models.Model, ClassNameGetter, SaveRememberer):
     id = models.AutoField(primary_key=True)
     humanid = models.CharField(
         max_length=32,
@@ -328,7 +348,7 @@ class GoodsEntry(models.Model, ClassNameGetter):
         # return str(self.comment)
 
 
-class KilledGoodsEntry(models.Model, ClassNameGetter):
+class KilledGoodsEntry(models.Model, ClassNameGetter, SaveRememberer):
     id = models.AutoField(primary_key=True)
     humanid = models.CharField(
         max_length=32,
@@ -482,10 +502,15 @@ class MultimodelMatrixEdit:
                         '',
                         # cell html class
                         cls,
+                        # # is_hidden flag
+                        # 1 if shown_key in MATRIX_CONSTS['edit'][
+                        #     'hidden_keys'][self.model] else 0
                     ]
                     for shown_key, cls in zip(
-                        MATRIX_CONSTS['edit']['shown_keys'][
-                            self.model],
+                        (
+                            MATRIX_CONSTS['edit']['shown_keys'][
+                                self.model]
+                        ),
                         MATRIX_CONSTS['edit']['cell_html_classes'][
                             self.model]
                     )
@@ -809,6 +834,7 @@ MATRIX_CONSTS = {
             ),
         },
     },
+
     'edit': {
         'shown_keys': {
             Partner: (

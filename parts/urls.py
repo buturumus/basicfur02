@@ -7,10 +7,11 @@ from .views import selected_view
 
 urlpatterns = [
     path(
-        '<str:tab_cmd>/<str:part_stage>/<int:pk>/',
+        '<str:tab_cmd>/<str:part_stage>/<int:pk>/', 
         never_cache(
             selected_view
-        )
+        ),
+        name='tab',
     ),
     path(
         '<str:tab_cmd>/<str:part_stage>/',

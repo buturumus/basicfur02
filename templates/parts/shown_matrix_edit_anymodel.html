@@ -4,7 +4,13 @@
 {% load crispy_forms_tags %}
 {% load crispy_forms_field %}
 
-<form action="." method="POST">
+<form 
+  method="POST"
+>
+  {% comment %}
+  onsubmit="return false" 
+  {{ form.as_table }}
+  {% endcomment %}
 
   <table 
     class="table col-12
@@ -16,19 +22,27 @@
     <tbody class="table-sm">
     {% csrf_token %}
     {% for object_keyvals_and_cls, headers_names_and_cls, form_field in headers_cells_form_zip %}
-      <tr
-      >
-        <th scope="row"
-          class="{{ headers_names_and_cls.1 }} align-middle" 
+      {% comment %}
+      {% if object_keyvals_and_cls.3 %}
+        {{ form_field.as_hidden }}
+      {% else %}
+      {% endcomment %}
+        <tr
         >
-          {{ headers_names_and_cls.0 }}
-        </th>
-        <td 
-          class="{{ object_keyvals_and_cls.2 }} align-middle ugly-child-crispy-margin" 
-        >
-          {{ form_field|as_crispy_field }}
-        </td>
-      </tr>
+          <th scope="row"
+            class="{{ headers_names_and_cls.1 }} align-middle" 
+          >
+            {{ headers_names_and_cls.0 }}
+          </th>
+          <td 
+            class="{{ object_keyvals_and_cls.2 }} align-middle ugly-child-crispy-margin" 
+          >
+            {{ form_field|as_crispy_field }}
+          </td>
+        </tr>
+      {% comment %}
+      {% endif %}
+      {% endcomment %}
     {% endfor %}
     </tbody>
   </table>
