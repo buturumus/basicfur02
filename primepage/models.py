@@ -26,7 +26,7 @@ class SaveRememberer:
             'create_date': datetime.now(),
         }
 
-    def get_absolute_url(self):
+    def get_absolute_url(self):  # don't really need it because of ajax
         return '.'
 
 
@@ -75,13 +75,13 @@ class Partner(models.Model, ClassNameGetter, SaveRememberer):
         on_delete=models.CASCADE
     )
     create_date = models.DateTimeField(
-        # default=datetime(1970, 1, 1, 0, 0, 0, 0)
+        default=datetime(1970, 1, 1, 0, 0, 0, 0)
     )
     created_by = models.ForeignKey(
         # 'users.CustomUser',
         CustomUser,
         related_name='partner_created_by',
-        # default=None,
+        default=None,
         null=True,
         blank=True,
         on_delete=models.CASCADE)

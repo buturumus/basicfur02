@@ -17,6 +17,7 @@ from django.views.generic.list import ListView  # noqa
 from django.views.generic.base import TemplateView
 from django.views.generic import CreateView
 from django.views.generic import UpdateView
+from django.views.generic import DeleteView
 # app-level imports
 from primepage.models import Partner
 from primepage.models import Material
@@ -40,23 +41,17 @@ class ShownAnypart(TabStarter, LcData):
         self.pk = kwargs['pk']
         self.label_keys_to_localize = ()
         self.tabclick_keys_to_localize = ()
-        # fill std.fields width init.costs.data set
+        # fill std.fields width init.consts.data set
         TabStarter.__init__(self, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
         context = {}
-        context.update(
-            TabStarter.get_context_data(self)
-        )
-        context.update(
-            LcData.get_context_data(self)
-        )
+        context.update(TabStarter.get_context_data(self))
+        context.update(LcData.get_context_data(self))
         # add  manually
         context.update({'pk': self.pk})
         #
-        # logging.warning(
-        #     context
-        # )
+        # logging.warning(context)
         #
         return context
 
@@ -171,11 +166,14 @@ class ShownMatrixNewOrEditAnymodel(ShownMatrixAnymodel,
         for field in written_by_backend:
             setattr(form.instance, field, written_by_backend[field])
         # save instance
-        response = super().form_valid(form)
+        logging.warning(self)
+        response = self.super_form_valid(form)
         return (
             JsonResponse({'pk': self.object.pk})
             if self.request.is_ajax() else response
         )
+    # def form_valid(self, form):
+    #     return self.render_to_response(self.get_context_data())
 
 
 # anymodel class for new case only, based on create view
@@ -202,6 +200,13 @@ class ShownMatrixNewAnymodel(CreateView, ShownMatrixNewOrEditAnymodel):
         )
         return context
 
+    def super_form_valid(self, form):
+        return CreateView.form_valid(self, form)
+
+    # and now rewrite form_valid
+    def form_valid(self, form):
+        return ShownMatrixNewOrEditAnymodel.form_valid(self, form)
+
 
 # common data for edit case only, based on update view
 class ShownMatrixEditAnymodel(UpdateView, ShownMatrixNewOrEditAnymodel):
@@ -227,19 +232,12 @@ class ShownMatrixEditAnymodel(UpdateView, ShownMatrixNewOrEditAnymodel):
         )
         return context
 
+    def super_form_valid(self, form):
+        return UpdateView.form_valid(self, form)
+
+    # and now rewrite form_valid
     def form_valid(self, form):
-        # add keyvals written on backend side
-        written_by_backend = self.model.get_written_by_backend(self.request)
-        for field in written_by_backend:
-            setattr(form.instance, field, written_by_backend[field])
-        # save instance
-        response = super().form_valid(form)
-        return (
-            JsonResponse({'pk': self.object.pk})
-            if self.request.is_ajax() else response
-        )
-    # def form_valid(self, form):
-    #     return self.render_to_response(self.get_context_data())
+        return ShownMatrixNewOrEditAnymodel.form_valid(self, form)
 
 
 # new/edit Partner
@@ -280,11 +278,52 @@ class ShownMatrixEditMaterial(ShownMatrixNewOrEditPartner,
         ShownMatrixEditAnymodel.__init__(self, *args, **kwargs)
 
 
+# For 'delete' cases
+
+class ShownDelAnymodel(DeleteView, ShownAnypart):
+    template_name = 'parts/yesno.html'
+    success_url = '.'
+
+    def __init__(self, *args, **kwargs):
+        ShownAnypart.__init__(self, *args, **kwargs)
+        UpdateView.__init__(self, *args, **kwargs)
+        self.label_keys_to_localize = (
+            'yesno_sure_question', 'yesno_no_answer', 'yesno_yes_answer',
+        )
+
+    def get_context_data(self, *args, **kwargs):
+        context = ShownAnypart.get_context_data(self, *args, **kwargs)
+        context.update(
+            DeleteView.get_context_data(self, *args, **kwargs)
+        )
+        return context
+
+    def delete(self, request, *args, **kwargs):
+        pk = self.get_object().pk
+        response = DeleteView.delete(self, request, *args, **kwargs)
+        return (
+            JsonResponse({'pk': pk})
+            if self.request.is_ajax() else response
+        )
+
+
+class ShownDelPartner(ShownDelAnymodel):
+    model = Partner
+
+
+class ShownDelMaterial(ShownDelAnymodel):
+    model = Material
+
+
+# ###
+
 class ShownError(TemplateView):
     template_name = 'parts/shown_bodie_error.html'
     tab_cmd = None
     pk = 0
 
+
+# ###
 
 def selected_view(request, tab_cmd, part_stage, *args, **kwargs):
     # unwrap urlconf's vals: request, tab_cmd and part_stage as simple vars
@@ -329,6 +368,14 @@ def selected_view(request, tab_cmd, part_stage, *args, **kwargs):
         elif tab_cmd in ('new_material', 'pensil_material'):
             view_class = ShownMatrixNewMaterial if kwargs[
                 'pk'] == 0 else ShownMatrixEditMaterial
+        else:
+            view_class = ShownError
+    # to delete some model inst.
+    elif part_stage == 'del':
+        if tab_cmd == 'pensil_partner':
+            view_class = ShownDelPartner 
+        elif tab_cmd == 'pensil_material':
+            view_class = ShownDelMaterial
         else:
             view_class = ShownError
     else:

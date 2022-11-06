@@ -1,7 +1,10 @@
-{# yesno.html #}
+{# parts/yesno.html #}
 
 {% load static %}
 
+<form 
+  method="POST"
+>
 <p>
   <div class="row">
     <div class="col">
@@ -40,22 +43,31 @@
     </div>
 
     <div class="col-3 text-center">
-      <button id="no-button" type="button" class="btn btn-danger btn-block">{{ yesno_no_answer }}</button>
+      <button 
+        class="
+          no-btn
+          btn btn-danger btn-block
+        "
+        type="button" 
+      >
+        {{ yesno_no_answer }}
+      </button>
     </div>
 
     <div class="col-3 text-center">
-      <button id="yes-button" type="button" class="btn btn-success btn-block">{{ yesno_yes_answer }}</button>
+      <button 
+        class="
+          yes-btn
+          btn btn-success btn-block
+        "
+        type="submit" 
+      >
+        {{ yesno_yes_answer }}
+      </button>
     </div>
 
     <div class="col-3 text-right">
     </div>
   </div>
 </p>
-
-{% comment %}
-<script 
-  src="{% static 'js/mainpage/yesno.js' %}"
->
-</script>
-{% endcomment %}
-
+</form>

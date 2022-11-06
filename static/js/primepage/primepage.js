@@ -195,6 +195,56 @@ class PagepartGetter {
 }
 
 
+class ShownDelGetter extends PagepartGetter {
+
+  constructor(parentMatrixGetter){
+    super();
+    const theDelGetter = this;
+    const parentBodie = $(
+      `#tab-bodies-cont .tab-bodie[tab_cmd=${parentMatrixGetter.tabCmd}]`
+    );
+    this.objToAppendTo = $('#yes-no-cont');
+    this.tabCmd = parentMatrixGetter.tabCmd;
+    this.pk = parentMatrixGetter.pk;
+    this.url = `/part/${this.tabCmd}/del/${this.pk}/`;
+
+    this.ajaxGetSuccessCallback = (resp) => { 
+      // hide all tabs
+      $('#tabs-cont').hide();
+      $('#yes-no-cont').show();
+      // put downloaded yes-no form to it's place
+      const addedYesNoScreen = this.objToAppendTo.append(resp)
+        .children(':last-child');
+      // activate 'yes-sure' button
+      $(addedYesNoScreen).find('.yes-btn').closest('form')
+        .on('submit', function() {
+          event.preventDefault();
+          theDelGetter.sendAjaxFormPost(this);
+        }
+      );
+      // activate 'no' button
+      $(addedYesNoScreen).find('.no-btn').click(function() {
+        $('#tabs-cont').show();
+        $('#yes-no-cont').children().remove();
+        $('#yes-no-cont').hide();
+      });
+    }
+
+    this.ajaxPostSuccessCallback = (resp) => { 
+      //
+      console.log(`del:${resp['pk']}`);
+      // close the tab
+      console.log($(parentBodie).attr('tab_cmd'));
+      theDelGetter.closeTab(parentBodie);
+      $('#tabs-cont').show();
+      $('#yes-no-cont').children().remove();
+      $('#yes-no-cont').hide();
+    }
+  }
+
+}
+
+
 class ShownMatrixGetter extends PagepartGetter {
 
   constructor(parentBodieGetter){
@@ -229,6 +279,18 @@ class ShownMatrixGetter extends PagepartGetter {
           event.preventDefault();
           // theMatrixGetter.sendAjaxFormPost(this, theMatrixGetter.url);
           theMatrixGetter.sendAjaxFormPost(this);
+      });
+      // activate 'delete' button
+      $(addedMatrix).find('.del-btn').click(function() {
+//      alert(theMatrixGetter.tabCmd);
+        const delGetter = new ShownDelGetter(theMatrixGetter);
+        delGetter.sendAjaxGet();
+      /*
+      $(addedMatrix).find('.save-btn').closest('form').on('submit', function() {
+          event.preventDefault();
+          // theMatrixGetter.sendAjaxFormPost(this, theMatrixGetter.url);
+          theMatrixGetter.sendAjaxFormPost(this);
+      */
       });
       // and activate pensils
       addedMatrix.find('.pensil').click(function() {

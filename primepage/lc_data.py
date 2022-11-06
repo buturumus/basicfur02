@@ -116,6 +116,10 @@ class LcData:
         'edit_partner_name2': ('Name2', ),
         'edit_partner_group': ('Is in group', ),
         'edit_material_name': ('Name', ),
+        # yes-no screen
+        'yesno_sure_question': ('Are you sure?',  ),
+        'yesno_no_answer': ('No, cansel',  ),
+        'yesno_yes_answer': ('Yes, continue',  ),
     }
 
     def lc(name):
