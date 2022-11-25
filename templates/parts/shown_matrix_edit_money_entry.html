@@ -1,0 +1,225 @@
+{# parts/shown_matrix_edit_anymodel.html #}
+
+{% load static %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_field %}
+
+{% comment %}
+          'humanid',
+          'date',
+          'partner',
+          'hot_entry',
+          'deb_account',
+          'cred_account',
+          'money',
+          'comment',
+{% endcomment %}
+
+<form 
+  method="POST"
+>
+  <table 
+    class="table col-12
+      table-sm text-nowrap table-active table-bordered 
+      table-hover table-responsive-lg 
+      tab-matrix
+    "
+  >
+    <tbody class="table-sm">
+    {% csrf_token %}
+
+      <!-- line 1 -->
+      <tr class="col-12"> 
+
+        {# humanid #}
+        <th 
+          class="col-1
+            align-middle text-right" 
+          scope="row"
+        >
+          {{ headers_names_and_cls.0.0 }}
+        </th>
+        <td
+          class="col-2 
+            ugly-child-crispy-margin
+            align-middle"
+        >
+          {{ form_fields.0|as_crispy_field }}
+        </td>
+
+        {# created when and whom by #}
+        {# if matrix_type != 'new' #} 
+        <td 
+          class="col-9
+            ugly-child-crispy-margin
+            align-middle text-right" 
+          colspan="6"
+        >
+          &#9998;: {{ form_fields.9 }} {{ form_fields.8 }} (GMT)
+        </td>
+        {# endif #} 
+      
+      </tr>
+
+      <!-- line 2 -->
+      <tr class="col-12"> 
+
+        {# hot_transaction #}
+        <th 
+          class="col-1 
+            align-middle text-right"
+          scope="row"
+        >
+          {{ headers_names_and_cls.3.0 }}
+        </th>
+        <td
+          class="col-2 
+            ugly-child-crispy-margin
+            align-middle"
+        >
+          {{ form_fields.3|as_crispy_field }}
+        </td>
+        
+        {# date #}
+        <th 
+          class="col-1 
+            align-middle text-right" 
+          scope="row"
+        >
+          {{ headers_names_and_cls.1.0 }}
+        </th>
+        <td
+          class="col-2 
+            ugly-child-crispy-margin
+            align-middle"
+        >
+          {{ form_fields.1|as_crispy_field }}
+        </td>
+
+        {# partner #}
+        <th 
+          class="col-1
+            align-middle text-right" 
+          scope="row"
+        >
+          {{ headers_names_and_cls.2.0 }}
+        </th>
+        <td
+          class="col-2 
+            ugly-child-crispy-margin
+            align-middle"
+        >
+          {{ form_fields.2|as_crispy_field }}
+        </td>
+
+        {# (employee) #}
+        {% if is_employees_action|stringformat:"s" == '1' %} 
+          {# employee #}
+          <th class="col-1 align-middle text-right" scope="row">
+          {{ header_titles.11 }}
+          </th>
+          <td class="col-2 align-middle">
+            {{ cells_arr.11 }}
+          </td>
+          {# empty #}
+          <td 
+            colspan="2"
+          >
+          </td>
+
+        {% else %}
+          {# empty #}
+          <td 
+            class="col-3"
+          >
+          </td>
+
+          {% comment %}
+          <td 
+            colspan="6"
+          >
+          </td>
+          {% endcomment %}
+
+        {% endif %}
+
+      </tr>
+
+      <!-- line 3 -->
+      <tr class="col-12"> 
+
+        {# money #}
+        <th 
+          class="align-middle text-right
+            col-1" 
+          scope="row"
+        >
+          {{ headers_names_and_cls.6.0 }}
+        </th>
+        <td
+          class="ugly-child-crispy-margin
+            col-2
+            align-middle"
+        >
+          {{ form_fields.6|as_crispy_field }}
+        </td>
+
+        {# comment #}
+        <th 
+          class="align-middle text-right
+            col-1" 
+          scope="row"
+        >
+          {{ headers_names_and_cls.7.0 }}
+        </th>
+        <td
+          class="ugly-child-crispy-margin
+            col-8 
+            align-middle text-left"
+          colspan="5"
+        >
+        {{ form_fields.7|as_crispy_field }}
+      </td>
+
+    </tr>
+
+    </tbody>
+  </table>
+
+
+  {# bottom keys block #}
+  <p>
+  <div class="row">
+
+    {# bottom_left_button #}
+    {# replace delete-button for new items #}
+    {% if pk %}
+      <div class="col text-center">
+        <button 
+          type="button" 
+          class="btn btn-danger del-btn"
+        >{{ btn_delete }}</button>
+      </div>
+    {% endif %}
+
+    {# bottom_right_button #}
+    {% if tab_model == "transaction" %}
+        <div class="col text-center">
+          <button 
+            type="submit" 
+            class="btn btn-success save-btn"
+          >{{ btn_save_close_m_entry }}</button>
+        </div>
+    {% else %}
+      <div class="col text-center">
+        <button 
+          type="submit" 
+          class="btn btn-success save-btn"
+        >{{ btn_save_close }}</button>
+      </div>
+    {% endif %}
+  </div>
+  </p>
+
+</form>
+

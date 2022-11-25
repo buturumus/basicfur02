@@ -215,6 +215,7 @@ class ShownDelGetter extends PagepartGetter {
       // put downloaded yes-no form to it's place
       const addedYesNoScreen = this.objToAppendTo.append(resp)
         .children(':last-child');
+      //
       // activate 'yes-sure' button
       $(addedYesNoScreen).find('.yes-btn').closest('form')
         .on('submit', function() {
@@ -222,6 +223,14 @@ class ShownDelGetter extends PagepartGetter {
           theDelGetter.sendAjaxFormPost(this);
         }
       );
+      //
+      // put current money_entries_bunch's id to the form's hidden field
+      // to transfer it to backendl
+      const moneyEntriesBunchPk = $(parentMatrixGetter.bunchPkCont)
+        .attr('money_entries_bunch_pk');
+      $(addedYesNoScreen).find('input[name=money_entries_bunch_pk]')
+        .val(moneyEntriesBunchPk);
+      //
       // activate 'no' button
       $(addedYesNoScreen).find('.no-btn').click(function() {
         $('#tabs-cont').show();
@@ -257,10 +266,10 @@ class ShownMatrixGetter extends PagepartGetter {
     this.tabCmd = parentBodieGetter.tabCmd;
     this.pk = parentBodieGetter.pk;
     this.url = `/part/${this.tabCmd}/matrix/${this.pk}/`;
+
+    this.bunchPkCont = '';
     
     this.ajaxPostSuccessCallback = (resp) => { 
-      //
-      console.log(resp['pk']);
       // close the tab
       theMatrixGetter.closeTab(parentBodie);
     }
@@ -275,23 +284,38 @@ class ShownMatrixGetter extends PagepartGetter {
       $(addedMatrix).find('.ugly-child-crispy-margin .form-group')
         .addClass('m-1');
       // activate 'save' button
-      $(addedMatrix).find('.save-btn').closest('form').on('submit', function() {
+      $(addedMatrix).find('.save-btn').closest('form')
+        .on('submit', function() {
           event.preventDefault();
-          // theMatrixGetter.sendAjaxFormPost(this, theMatrixGetter.url);
+//        alert(theMatrixGetter.tabCmd);
+          // remove all 'disabled' attrs
+          $(addedMatrix).find('[disabled]').removeAttr('disabled');
           theMatrixGetter.sendAjaxFormPost(this);
       });
       // activate 'delete' button
       $(addedMatrix).find('.del-btn').click(function() {
-//      alert(theMatrixGetter.tabCmd);
+        // save current money_entries_bunch's id (more exactly, it's cont.)
+        // to transfer it to backendl later with yes/no button's processors
+        theMatrixGetter.bunchPkCont = this;
+        //
         const delGetter = new ShownDelGetter(theMatrixGetter);
         delGetter.sendAjaxGet();
-      /*
-      $(addedMatrix).find('.save-btn').closest('form').on('submit', function() {
-          event.preventDefault();
-          // theMatrixGetter.sendAjaxFormPost(this, theMatrixGetter.url);
-          theMatrixGetter.sendAjaxFormPost(this);
-      */
       });
+      // activate 'acc-plus'/'acc-minus' buttons
+      $(addedMatrix).find('.btn-accs-plus').click(function() {
+        $(this).closest('tr').find('.hideable').show();
+        $(this).hide();
+        $(this).closest('tr').find('.btn-accs-minus').show();
+      });
+      $(addedMatrix).find('.btn-accs-minus').click(function() {
+        $(this).closest('tr').find('.hideable').hide();
+        $(this).closest('tr').find('.hideable select').val('');
+        $(this).hide();
+        $(this).closest('tr').find('.btn-accs-plus').show();
+      });
+      // and hide everything by defalut there for the start
+      $(addedMatrix).find('.hideable').hide();
+      $(addedMatrix).find('.btn-accs-minus').hide();
       // and activate pensils
       addedMatrix.find('.pensil').click(function() {
         // check to avoid tab's duplication 

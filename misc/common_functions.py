@@ -1,6 +1,7 @@
 # misc/common_functions.py
 
 import logging  # noqa
+from datetime import datetime
 
 
 # find value in a list of similar dicts
@@ -17,3 +18,11 @@ def dict_list_search(dict_list,
         ]
     ))[0][key_for_search]
 
+
+def make_humanid():
+    return int(
+        (
+            datetime.now().timestamp()
+            - datetime(2021, 1, 1, 0, 0).timestamp()
+        ) * 10
+    )

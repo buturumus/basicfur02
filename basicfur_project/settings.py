@@ -157,3 +157,5 @@ LOGOUT_REDIRECT_URL = 'primepage'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 # CRISPY_TEMPLATE_PACK = 'uni_form'
 
+DATE_INPUT_FORMATS = ('%m/%d/%Y', '%Y-%m-%d')
+

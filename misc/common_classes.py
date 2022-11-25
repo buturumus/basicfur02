@@ -1,25 +1,39 @@
 # misc/common_classes.py
 
 class Initable:
-    # DEFAULT_KEYS = ('username', 'set_password', 'is_staff', 'is_superuser')
-    # DEFAULT_VALS = (
-    #     ('b3admin', 'b3adminb3admin', True, True),
-    #     ('test', 'test', True, False),
+    # DEFAULT_KEYSET = (
+    #     ('username'),
+    #     ('set_password', 'is_staff', 'is_superuser')
     # )
+    # DEFAULT_KEYVALS = {
+    #     'b3admin': ('b3adminb3admin', True, True),
+    #     'test': ('test', True, False),
+    #     'empty_key': (),
+    # }
 
     @classmethod
-    def init_defaults(cls):
-        for vals_line in cls.DEFAULT_VALS:
+    def check_init_defaults(cls):
+        for key_name in cls.DEFAULT_KEYVALS:
             # check if such instance exists
             try:
                 uid = cls.objects.get(  # noqa
-                    **{cls.DEFAULT_KEYS[0], vals_line[0]})
+                    cls.DEFAULT_KEYSET[0], key_name)
                 continue
             # if doesn't then create it and fill with data
             except:
                 obj = cls()
-                for key, theval in zip(cls.DEFAULT_KEYS, vals_line):
-                    setattr(obj, key, theval)
+                setattr(obj, cls.DEFAULT_KEYSET[0], key_name)
+                # if there are other non-empty keys
+                if cls.DEFAULT_KEYVALS[key_name]:
+                    for the_key, the_val in zip(
+                        cls.DEFAULT_KEYS[1],
+                        cls.DEFAULT_KEYVALS[key_name]
+                    ):
+                        # N.B. the method
+                        # must be set in the model
+                        obj.__class__.second_defaults_init_method(
+                            obj, the_key, the_val
+                        )
                 obj.save()
 
     @classmethod

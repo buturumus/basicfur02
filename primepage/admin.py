@@ -5,6 +5,7 @@ from .models import Partner
 from .models import Material
 from .models import HotEntry
 from .models import MoneyEntry
+from .models import MoneyEntriesBunch
 from .models import KilledMoneyEntry
 from .models import GoodsEntry
 from .models import KilledGoodsEntry
@@ -52,10 +53,18 @@ admin.site.register(HotEntry, HotEntryAdmin)
 
 #
 class MoneyEntryAdmin(admin.ModelAdmin):
-    list_display = ('humanid', )
+    list_display = ('id', )
 
 
 admin.site.register(MoneyEntry, MoneyEntryAdmin)
+
+
+#
+class MoneyEntriesBunchAdmin(admin.ModelAdmin):
+    list_display = ('id', )
+
+
+admin.site.register(MoneyEntriesBunch, MoneyEntriesBunchAdmin)
 
 
 #

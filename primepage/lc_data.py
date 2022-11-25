@@ -90,6 +90,7 @@ class LcData:
         # pensils
         'side_or_pensil_pensil_partner': ('Edit partner', ),
         'side_or_pensil_pensil_material': ('Edit material', ),
+        'side_or_pensil_pensil_money_entry': ('Edit entry', ),
         # common tab bodie buttons
         'btn_f5': ('Reload', ),
         'btn_add': ('Add', ),
@@ -107,8 +108,8 @@ class LcData:
         'summary_m_entry_date': ('Op.date', ),
         'summary_m_entry_partner': ('Partner', ),
         'summary_m_entry_hot_entry': ('Trans.type', ),
-        'summary_m_entry_deb_account': ('DebAcc', ),
-        'summary_m_entry_cred_account': ('CredAcc', ),
+        'summary_m_entry_dr_acc': ('DebAcc', ),
+        'summary_m_entry_cr_acc': ('CredAcc', ),
         'summary_m_entry_money': ('Sum', ),
         'summary_m_entry_comment': ('Comment', ),
         # edit matrixx
@@ -116,10 +117,27 @@ class LcData:
         'edit_partner_name2': ('Name2', ),
         'edit_partner_group': ('Is in group', ),
         'edit_material_name': ('Name', ),
+        'edit_m_entry_humanid': ('ID:', ),
+        'edit_m_entry_date': ('Date:', ),
+        'edit_m_entry_partner': ('Partner:', ),
+        'edit_m_entry_hot_entry': ('Ent.type:', ),
+        'edit_m_entry_money': ('Sum:', ),
+        'edit_m_entry_comment': ('Comm.:', ),
+        'edit_m_entry_dr_acc': ('DR Acc:', ),
+        'edit_m_entry_cr_acc': ('CR Acc:', ),
+        'edit_m_entry_details': ('Accounts...:', ),
+        # 'edit_m_entry_has_goodslines': ('Cont.goods', ),
+        # 'edit_m_entry_create_date': ('Chng.date', ),
+        # 'edit_m_entry_created_by': ('Chng.by', ),
+        # 'edit_m_entry_employee': ('Employee:', ),
+        # 'edit_m_entry_details': ('Details...', ),
+        # 'edit_m_entry_add_acc': ('Add acc.', ),
+        # 'edit_m_entry_kill_date': ('Del.date', ),
+        # 'edit_m_entry_killed_by': ('Del.by', ),
         # yes-no screen
-        'yesno_sure_question': ('Are you sure?',  ),
-        'yesno_no_answer': ('No, cansel',  ),
-        'yesno_yes_answer': ('Yes, continue',  ),
+        'yesno_sure_question': ('Are you sure?', ),
+        'yesno_no_answer': ('No, cansel', ),
+        'yesno_yes_answer': ('Yes, continue', ),
     }
 
     def lc(name):
